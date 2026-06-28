@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head th:replace="~{fragments/head :: head('Plan Creator', ~{::.page-resources})}">
+    <link class="page-resources" rel="stylesheet" th:href="@{/css/plan_creator.css}">
+</head>
+<body>
+
+    <header th:replace="~{fragments/header}"></header>
+
+    <main>
+        <div class="plan-preview">
+            
+            <div class="weekly-config">
+                <div class="day-selection-field">
+                    <label for="days-count" class="select-label">Training sessions per week:</label>
+                    <div class="select-wrapper">
+                        <select id="days-count" class="field-input">
+                            <option value="1">1 Day</option>
+                            <option value="2">2 Days</option>
+                            <option value="3">3 Days</option>
+                            <option value="4" selected>4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="6">6 Days</option>
+                            <option value="7">7 Days</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="day-selector">
+                    <input type="radio" id="day1" name="selectedDay" value="1" checked>
+                    <label for="day1" class="day-button">Day 1</label>
+
+                    <input type="radio" id="day2" name="selectedDay" value="2">
+                    <label for="day2" class="day-button">Day 2</label>
+
+                    <input type="radio" id="day3" name="selectedDay" value="3">
+                    <label for="day3" class="day-button">Day 3</label>
+
+                    <input type="radio" id="day4" name="selectedDay" value="4">
+                    <label for="day4" class="day-button">Day 4</label>
+                </div>
+            </div>
+
+            <form>
+                
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <span class="exercise-id">Exercise 1</span>
+                        <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
+                    </div>
+                    
+                    <div class="form-card-body">
+                        <div class="field-container wide">
+                            <label class="field-label">Nazwa ćwiczenia</label>
+                            <input type="text" class="field-input" placeholder="np. Wyciskanie sztangi na ławce poziomej">
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label">Serie</label>
+                            <input type="number" class="field-input" placeholder="4" min="1">
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label">Powtórzenia</label>
+                            <input type="text" class="field-input" placeholder="8-10">
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label">Tempo</label>
+                            <input type="text" class="field-input" placeholder="3010">
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label">RIR (Zapas)</label>
+                            <input type="text" class="field-input" placeholder="1-2">
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label">Czas przerwy</label>
+                            <input type="text" class="field-input" placeholder="2 min">
+                        </div>
+
+                        <div class="field-container wide">
+                            <label class="field-label">Dodatkowe notatki</label>
+                            <input type="text" class="field-input" placeholder="np. Utrzymuj łokcie blisko ciała podczas wyciskania">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="button btn-secondary">＋ Dodaj ćwiczenie</button>
+                    <button type="submit" class="button btn-primary">💾 Zapisz cały plan</button>
+                </div>
+
+            </form>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/footer}"></footer>
+</body>
+</html>

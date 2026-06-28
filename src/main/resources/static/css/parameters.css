@@ -1,0 +1,67 @@
+/* ==========================================
+   WIDOK: TABELA PARAMETRÓW TRENINGU (VOLT)
+   ========================================== */
+
+.parameters {
+    width: 100%;
+    overflow-x: auto;
+    margin: 20px 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border: 1px solid #282e33;
+}
+
+.parameters table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+    font-family: Arial, sans-serif;
+    background-color: #1d2125;
+}
+
+.parameters th, .parameters td {
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #282e33;
+    color: #f1f3f5;
+}
+
+.parameters td:first-child {
+    text-align: left;
+    font-weight: bold;
+    background-color: #15181c; /* Nieco ciemniejszy podkład kolumny */
+    width: 25%;
+    border-right: 1px solid #282e33;
+}
+
+.parameters th {
+    background-color: #22272c;
+    color: white;
+    font-weight: 600;
+}
+
+.parameters input[type="number"] {
+    width: 100%;
+    max-width: 90px;
+    padding: 8px 5px;
+    border: 1px solid #282e33;
+    border-radius: 4px;
+    font-size: 15px;
+    text-align: center;
+    color: #ffffff;
+    background-color: #111416;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.parameters input[type="number"]:focus {
+    border-color: #ccff00;
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.2);
+}
+
+.parameters input[type="number"]:read-only {
+    background-color: #15181c;
+    color: #495057;
+    border-color: #282e33;
+    cursor: not-allowed;
+}

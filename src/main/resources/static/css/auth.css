@@ -1,0 +1,78 @@
+/* --- System Autoryzacji (auth.css lub w main.css) --- */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    padding: 20px;
+}
+
+.auth-card {
+    background-color: #1d2125;
+    border-radius: 12px;
+    border: 1px solid #282e33;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Klasa pomocnicza do ukrywania elementów */
+.auth-card.is-hidden {
+    display: none !important;
+}
+
+.auth-card-header {
+    background-color: #22272c;
+    padding: 20px;
+    border-bottom: 1px solid #282e33;
+    text-align: center;
+}
+
+.auth-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-card-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auth-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-actions .button {
+    width: 100%;
+}
+
+/* Dolna sekcja z przełączaniem ekranów */
+.auth-card-footer {
+    padding: 15px 25px;
+    background-color: #16191c;
+    border-top: 1px solid #282e33;
+    text-align: center;
+    font-size: 13px;
+    color: #68727d;
+}
+
+.auth-link {
+    color: #ccff00; /* Limonkowy link akcji */
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+    color: #b5e600;
+    text-decoration: underline;
+}

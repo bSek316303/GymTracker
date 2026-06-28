@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head th:replace="~{fragments/head :: head('Panel Administratora', ~{::.page-resources})}">
+    <link class="page-resources" rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+    <header th:replace="~{fragments/header}"></header>
+
+    <main>
+        <div class="admin-container">
+            <h2 class="admin-main-title">Panel Administratora</h2>
+
+            <div class="form-card admin-card">
+                <div class="form-card-header">
+                    <span class="exercise-id">Dodaj nowego użytkownika</span>
+                </div>
+                <form action="/admin/users/add" method="POST">
+                    <div class="form-card-body">
+                        <div class="field-container">
+                            <label class="field-label" for="new-username">Nazwa użytkownika</label>
+                            <input type="text" id="new-username" name="username" class="field-input" placeholder="np. Arnold123" required>
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label" for="new-email">E-mail</label>
+                            <input type="email" id="new-email" name="email" class="field-input" placeholder="np. arnold@gym.pl" required>
+                        </div>
+
+                        <div class="field-container">
+                            <label class="field-label" for="new-role">Rola</label>
+                            <select id="new-role" name="role" class="field-input">
+                                <option value="user" selected>Użytkownik</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+
+                        <div class="field-container wide admin-action-row">
+                            <button type="submit" class="button btn-primary">Utwórz konto</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="form-card admin-card">
+                <div class="form-card-header">
+                    <span class="exercise-id">Lista użytkowników systemu</span>
+                </div>
+                
+                <div class="user-list-container">
+                    
+                    <div class="user-row">
+                        <div class="user-info">
+                            <span class="user-badge-avatar">🏋️</span>
+                            <div class="user-meta">
+                                <span class="user-username">Jan_Kowalski</span>
+                                <span class="user-email">jan.kowalski@fit.pl</span>
+                            </div>
+                        </div>
+                        
+                        <div class="user-management-actions">
+                            <form action="/admin/users/update-role/1" method="POST" class="inline-form">
+                                <select name="role" class="field-input compact-select" onchange="this.form.submit()">
+                                    <option value="user" selected>Użytkownik</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </form>
+                            
+                            <form action="/admin/users/delete/1" method="POST" class="inline-form" onsubmit="return confirm('Czy na pewno chcesz usunąć tego użytkownika?');">
+                                <button type="submit" class="btn-delete-card">&times;</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="user-row">
+                        <div class="user-info">
+                            <span class="user-badge-avatar admin-avatar">👑</span>
+                            <div class="user-meta">
+                                <span class="user-username">Admin_Tomek</span>
+                                <span class="user-email">tomek@gymprogress.pl</span>
+                            </div>
+                        </div>
+                        <div class="user-management-actions">
+                            <form action="/admin/users/update-role/2" method="POST" class="inline-form">
+                                <select name="role" class="field-input compact-select" onchange="this.form.submit()">
+                                    <option value="user">Użytkownik</option>
+                                    <option value="admin" selected>Admin</option>
+                                </select>
+                            </form>
+                            <form action="/admin/users/delete/2" method="POST" class="inline-form">
+                                <button type="submit" class="btn-delete-card">&times;</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer}"></footer>
+
+</body>
+</html>

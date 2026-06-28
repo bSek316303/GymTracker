@@ -1,0 +1,48 @@
+/* ==========================================
+   WIDOK: KREATOR PLANU TRENINGOWEGO (VOLT)
+   ========================================== */
+
+.weekly-config {
+    background-color: #1d2125;
+    border: 1px solid #282e33;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.day-selection-field {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.select-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #bdc5cd;
+}
+
+.select-wrapper {
+    min-width: 150px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .form-actions {
+        flex-direction: column;
+    }
+    .form-actions .button {
+        width: 100%;
+    }
+}

@@ -1,0 +1,52 @@
+
+/* --- Uniwersalny Stoper --- */
+.stopwatch-container {
+    background-color: #1d2125;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 320px;
+    margin: 20px auto;
+    border: 1px solid #282e33;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.stopwatch-display {
+    font-size: 3rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    color: #ccff00; /* Cyfry stopera mocno świecą na limonkowo */
+    text-shadow: 0 0 10px rgba(204, 255, 0, 0.3);
+}
+
+.stopwatch-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.stopwatch-btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.stopwatch-btn.start { background-color: #2ecc71; color: white; }
+.stopwatch-btn.pause { background-color: #f1c40f; color: #111416; }
+.stopwatch-btn.reset { background-color: #e74c3c; color: white; }
+
+.stopwatch-btn:hover { opacity: 0.85; }
+
+.stopwatch-btn:disabled {
+    background-color: #282e33;
+    color: #495057;
+    cursor: not-allowed;
+    opacity: 0.5;
+}

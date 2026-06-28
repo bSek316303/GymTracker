@@ -1,0 +1,10 @@
+<head xmlns:th="http://www.thymeleaf.org" th:fragment="head(title, customResources)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+
+    <title th:text="${title}">Gym Progress Tracker</title>
+
+    <th:block th:replace="${customResources}"></th:block>
+</head>

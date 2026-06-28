@@ -1,0 +1,102 @@
+/* ==========================================
+   KOMPONENT LISTY INTERAKTYWNEJ (list.css)
+   ========================================== */
+
+.custom-dropdown {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto 25px auto;
+    font-family: Arial, sans-serif;
+}
+
+/* Pasek wyboru (trigger) */
+.dropdown-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background-color: #1d2125;
+    border: 2px solid #282e33;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.dropdown-trigger:hover {
+    border-color: #ccff00;
+    box-shadow: 0 0 10px rgba(204, 255, 0, 0.15);
+}
+
+.dropdown-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #bdc5cd;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Panel wysuwany z kafelkami */
+.dropdown-panel {
+    max-height: 0;
+    overflow: hidden;
+    background-color: #111416;
+    border: 1px solid #282e33;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    transition: max-height 0.3s ease-out, padding 0.3s ease;
+    padding: 0 20px;
+}
+
+/* Stan otwarty panelu */
+.custom-dropdown.active .dropdown-panel {
+    max-height: 500px; 
+    padding: 20px;
+    border-color: #282e33;
+}
+
+.custom-dropdown.active .dropdown-trigger {
+    background-color: #22272c;
+    border-color: #ccff00;
+}
+
+/* Układ siatki kafelków */
+.exercise-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+/* Kafelki jako specyficzna odmiana przycisków */
+.exercise-tile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background-color: #1d2125;
+    border: 2px solid #282e33;
+    border-radius: 6px;
+    color: #bdc5cd;
+    cursor: pointer;
+    text-align: left;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+}
+
+.exercise-tile:hover {
+    background-color: #22272c;
+    border-color: #ccff00;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.tile-icon {
+    font-size: 20px;
+}
+
+@media (max-width: 480px) {
+    .exercise-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,12 @@
+/* ==========================================
+   GŁÓWNY PLIK STYLÓW (SPIS TREŚCI)
+   ========================================== */
+
+/* Importujemy najpierw style globalne, potem komponenty */
+@import url('global.css');
+@import url('components.css');
+
+/* W przyszłości, jeśli stworzysz np. treningi.css dla samej tabeli serii, 
+   dopiszesz go tutaj na dole:
+   @import url('treningi.css');
+*/

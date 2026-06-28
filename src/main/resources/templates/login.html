@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head th:replace="~{fragments/head :: head('Login', ~{::.page-resources})}">
+    <link class="page-resources" rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+    <header th:replace="~{fragments/header}"></header>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-card" id="login-card">
+                <div class="auth-card-header">
+                    <h2 class="auth-title">Panel logowania</h2>
+                </div>
+                
+                <form action="/login" method="POST">
+                    <div class="auth-card-body">
+                        <div class="field-container wide">
+                            <label class="field-label" for="login-username">Nazwa użytkownika lub E-mail</label>
+                            <input type="text" id="login-username" name="username" class="field-input" placeholder="np. tytan_silowni" required>
+                        </div>
+
+                        <div class="field-container wide">
+                            <label class="field-label" for="login-password">Hasło</label>
+                            <input type="password" id="login-password" name="password" class="field-input" placeholder="••••••••" required>
+                        </div>
+                        
+                        <div class="auth-actions">
+                            <button type="submit" class="button btn-primary">Zaloguj się</button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="auth-card-footer">
+                    <p>Nie masz konta? <a href="register.html" class="auth-link">Zarejestruj się</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer}"></footer>
+
+</body>
+</html>

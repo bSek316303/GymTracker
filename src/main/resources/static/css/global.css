@@ -1,0 +1,59 @@
+/* ==========================================
+   STYLE GLOBALNE I UKŁAD STRONY (VOLT LINE)
+   ========================================== */
+
+/* Pobranie czcionek z Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@700&family=Rajdhani:wght@600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Rajdhani', sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    background-color: #111416; /* Głęboki, sportowy węgiel */
+    color: #f1f3f5;            /* Bardzo jasny, czytelny tekst */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    padding: 40px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: #111416;
+    min-height: 400px;
+    flex-grow: 1;
+}
+
+header {
+    font-family: 'Rajdhani', sans-serif;
+    background-color: #1d2125; /* Jaśniejsza warstwa węgla */
+    color: #ffffff;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #282e33; /* Techniczna linia podziału */
+}
+
+header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ccff00; /* Logo świeci na radioaktywną limonkę */
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+footer {
+    background-color: #1d2125;
+    color: #68727d;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+    border-top: 1px solid #282e33;
+}

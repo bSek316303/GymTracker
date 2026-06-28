@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head th:replace="~{fragments/head :: head('Gym Progress Tracker - Trening', ~{::.page-resources})}">
+    <script class="page-resources" th:src="@{/js/stoper.js}" defer></script>
+    <script class="page-resources" th:src="@{/js/dropdown.js}" defer></script>
+</head>
+<body>
+
+    <header th:replace="~{fragments/header}"></header>
+
+    <main>
+        <div class="main-content">
+            <div class="stopwatch-container">
+                <div class="stopwatch-display" id="stopwatch-display">00:00.00</div>
+                <div class="stopwatch-buttons">
+                    <button id="start-button" class="stopwatch-btn start">Start</button>
+                    <button id="pause-button" class="stopwatch-btn pause" disabled>Pauza</button>
+                    <button id="reset-button" class="stopwatch-btn reset" disabled>Reset</button>
+                </div>
+            </div>
+
+            <div class="exercise-container">
+                <h2 class="exercise-name">Nazwa bieżącego ćwiczenia</h2>
+
+                <div class="custom-dropdown">
+                    <div class="dropdown-trigger" id="dropdownTrigger">
+                        <span class="dropdown-title">Wybierz ćwiczenie z listy</span>
+                        <span class="arrow-indicator"></span> 
+                    </div>
+                    
+                    <div class="dropdown-panel" id="dropdownPanel">
+                        <div class="exercise-grid">
+                            <button type="button" class="exercise-tile" data-value="squat">
+                                <span class="tile-name">Przysiad ze sztangą</span>
+                            </button>
+                            <button type="button" class="exercise-tile" data-value="deadlift">
+                                <span class="tile-name">Martwy ciąg</span>
+                            </button>
+                            <button type="button" class="exercise-tile" data-value="bench-press">
+                                <span class="tile-name">Wyciskanie na ławce</span>
+                            </button>
+                            <button type="button" class="exercise-tile" data-value="pull-up">
+                                <span class="tile-name">Podciąganie na drążku</span>
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-exercise" name="exerciseName" value="">
+                </div>
+
+                <div class="parameters">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parametr</th>
+                                <th>Seria 1</th>
+                                <th>Seria 2</th>
+                                <th>Seria 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Powtórzenia</strong></td>
+                                <td><input type="number" placeholder="0" min="0"></td>
+                                <td><input type="number" placeholder="0" min="0"></td>
+                                <td><input type="number" placeholder="0" min="0"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ciężar (kg)</strong></td>
+                                <td><input type="number" placeholder="0.0" step="2.5" min="0"></td>
+                                <td><input type="number" placeholder="0.0" step="2.5" min="0"></td>
+                                <td><input type="number" placeholder="0.0" step="2.5" min="0"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Zapas (RIR)</strong></td>
+                                <td><input type="number" placeholder="RIR" min="0" max="10"></td>
+                                <td><input type="number" placeholder="RIR" min="0" max="10"></td>
+                                <td><input type="number" placeholder="RIR" min="0" max="10"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Przerwa (sekundy)</strong></td>
+                                <td><input type="number" placeholder="sek" min="0"></td>
+                                <td><input type="number" placeholder="sek" min="0"></td>
+                                <td><input type="number" placeholder="sek" min="0"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="history-title">Parametry z poprzedniego tygodnia</h3>
+
+                <div class="parameters">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parametr</th>
+                                <th>Seria 1</th>
+                                <th>Seria 2</th>
+                                <th>Seria 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Powtórzenia</strong></td>
+                                <td><input type="number" value="8" readonly></td>
+                                <td><input type="number" value="8" readonly></td>
+                                <td><input type="number" value="8" readonly></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ciężar (kg)</strong></td>
+                                <td><input type="number" value="100" readonly></td>
+                                <td><input type="number" value="100" readonly></td>
+                                <td><input type="number" value="100" readonly></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Zapas (RIR)</strong></td>
+                                <td><input type="number" value="2" readonly></td>
+                                <td><input type="number" value="2" readonly></td>
+                                <td><input type="number" value="2" readonly></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Przerwa (sekundy)</strong></td>
+                                <td><input type="number" value="180" readonly></td>
+                                <td><input type="number" value="180" readonly></td>
+                                <td><input type="number" value="180" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="actions-wrapper">
+                <button type="button" class="button btn-primary" href="training.html">Kolejne ćwiczenie</button>
+            </div>
+        </div>
+    </main>
+
+    <footer th:replace="~{fragments/footer}"></footer>
+    
+</body>
+</html>
