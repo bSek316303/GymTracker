@@ -14,7 +14,7 @@
                     <h2 class="auth-title">Panel logowania</h2>
                 </div>
                 
-                <form action="/login" method="POST">
+                <form th:action="@{/login}" th:method="POST">
                     <div class="auth-card-body">
                         <div class="field-container wide">
                             <label class="field-label" for="login-username">Nazwa użytkownika lub E-mail</label>

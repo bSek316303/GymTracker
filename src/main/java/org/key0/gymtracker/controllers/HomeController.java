@@ -26,13 +26,14 @@ public class HomeController {
         return "training";
     }
 
+
     @GetMapping("/login")
-    public String login() {
+    public String loginView() {
         return "login";
     }
 
     @GetMapping("/register")
-    public String register() {
+    public String registerView() {
         return "register";
     }
 }
