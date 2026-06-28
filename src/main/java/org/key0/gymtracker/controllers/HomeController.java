@@ -11,14 +11,10 @@ public class HomeController {
     }
 
     @GetMapping("/admin-view")
-    public String adminView()  {
-        return "admin_view";
-    }
+    public String adminView()  { return "admin_view"; }
 
     @GetMapping("/profile")
-    public String profile() {
-        return "profile";
-    }
+    public String profile() { return "profile"; }
 
     @GetMapping("/plan")
     public String plan() {
