@@ -15,16 +15,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 1. Wyłączamy na chwilę CSRF, żeby formularz rejestracji POST nas nie blokował na start
+                .csrf(csrf -> csrf.disable())
+
+                // 2. Reguły dostępu - OD NAJBARDZIEJ SZCZEGÓŁOWYCH DO OGÓLNYCH
                 .authorizeHttpRequests(auth -> auth
-                        // Gwiazdki muszą być dokładnie dwie, bez spacji na końcu
-                        .requestMatchers("/", "/login", "/register", "/error", "/favicon.ico").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        // Wpuszczamy style, skrypty i obrazki
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+
+                        // Wpuszczamy strony powitalne, błędy oraz logowanie/rejestrację
+                        .requestMatchers("/", "/login", "/register", "/error").permitAll()
+
+                        // DOPIERO NA SAMYM KOŃCU: wszystko inne wymaga zalogowania
                         .anyRequest().authenticated()
                 )
+
+                // 3. Konfiguracja formularza logowania
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .permitAll()
                         .defaultSuccessUrl("/profile", true)
+                        .permitAll()
                 );
 
         return http.build();

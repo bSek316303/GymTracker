@@ -13,29 +13,35 @@
                 <div class="auth-card-header">
                     <h2 class="auth-title">Stwórz konto</h2>
                 </div>
-                
-                <form action="/register" method="POST">
+
+                <form th:action="@{/register}" th:object="${user}" method="POST">
                     <div class="auth-card-body">
+
                         <div class="field-container wide">
                             <label class="field-label" for="register-username">Nazwa użytkownika</label>
-                            <input type="text" id="register-username" name="username" class="field-input" placeholder="np. tytan_silowni" required>
+                            <input type="text" id="register-username" th:field="*{username}" class="field-input" placeholder="np. tytan_silowni" required>
                         </div>
+                        <span class="error-message"
+                              th:if="${#fields.hasErrors('username')}"
+                              th:errors="*{username}"
+                              style="color: red; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        </span>
 
                         <div class="field-container wide">
                             <label class="field-label" for="register-email">Adres E-mail</label>
-                            <input type="email" id="register-email" name="email" class="field-input" placeholder="np. kontakt@gymtracker.pl" required>
+                            <input type="email" id="register-email" th:field="*{email}" class="field-input" placeholder="np. kontakt@gymtracker.pl" required>
                         </div>
+                        <span class="error-message"
+                              th:if="${#fields.hasErrors('email')}"
+                              th:errors="*{email}"
+                              style="color: red; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        </span>
 
                         <div class="field-container wide">
                             <label class="field-label" for="register-password">Hasło</label>
-                            <input type="password" id="register-password" name="password" class="field-input" placeholder="Min. 8 znaków" required>
+                            <input type="password" id="register-password" th:field="*{password}" class="field-input" placeholder="Min. 8 znaków" required>
                         </div>
 
-                        <div class="field-container wide">
-                            <label class="field-label" for="register-confirm-password">Powtórz hasło</label>
-                            <input type="password" id="register-confirm-password" name="confirmPassword" class="field-input" placeholder="••••••••" required>
-                        </div>
-                        
                         <div class="auth-actions">
                             <button type="submit" class="button btn-primary">Zarejestruj się</button>
                         </div>

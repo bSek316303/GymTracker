@@ -25,15 +25,4 @@ public class HomeController {
     public String training() {
         return "training";
     }
-
-
-    @GetMapping("/login")
-    public String loginView() {
-        return "login";
-    }
-
-    @GetMapping("/register")
-    public String registerView() {
-        return "register";
-    }
 }
