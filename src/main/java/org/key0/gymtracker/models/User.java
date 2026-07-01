@@ -1,6 +1,7 @@
 package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "users")
-@Setter
+@Data
 public class User implements UserDetails {
 
     @Id

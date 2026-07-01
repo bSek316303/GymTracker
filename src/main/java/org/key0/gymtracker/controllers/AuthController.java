@@ -23,11 +23,10 @@ public class AuthController {
         return "login";
     }
 
-    // 1. Wyświetlenie formularza rejestracji
     @GetMapping("/register")
     public String registerPage(Model model) {
         model.addAttribute("user", new User());
-        return "register"; // zwróci templates/register.html
+        return "register";
     }
 
     @PostMapping("/register")
@@ -46,7 +45,6 @@ public class AuthController {
 
         userService.registerNewUser(user);
 
-        // Sukces -> przekierowanie
         return "redirect:/login?registered=true";
     }
 }

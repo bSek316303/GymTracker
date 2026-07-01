@@ -1,0 +1,35 @@
+-- 1. Tabela Użytkowników (Podstawa, do której przypisujemy resztę danych)
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(32) NOT NULL UNIQUE,
+    email VARCHAR(64) NOT NULL UNIQUE,
+    password VARCHAR(80) NOT NULL,
+);
+
+-- 2. Tabela Historii Wag (Relacja Wiele-do-Jednego z users)
+CREATE TABLE weights (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    weight_date DATE NOT NULL,
+    weight FLOAT NOT NULL,
+    user_id BIGINT NOT NULL,
+    
+    -- Powiązanie z tabelą users
+    CONSTRAINT fk_weights_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Tabela Wymiarów Ciała (Relacja Wiele-do-Jednego z users)
+CREATE TABLE body_measurements (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    measurement_date DATE NOT NULL,
+    chest FLOAT NULL,
+    shoulders FLOAT NULL,
+    biceps FLOAT NULL,
+    thigh FLOAT NULL,
+    waist FLOAT NULL,
+    belly FLOAT NULL,
+    hips FLOAT NULL,
+    user_id BIGINT NOT NULL,
+    
+    -- Powiązanie z tabelą users
+    CONSTRAINT fk_measurements_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

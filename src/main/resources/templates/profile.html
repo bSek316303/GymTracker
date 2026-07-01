@@ -14,8 +14,14 @@
                 <div class="user-profile-summary">
                     <div class="profile-avatar"></div>
                     <div class="profile-meta">
-                        <h2 class="profile-username">Tytan_Treningu</h2>
+                        <h2 class="profile-username" th:text="'Witaj, ' + ${user.username}"></h2>
                         <span class="profile-role">Klubowicz (Stały staż)</span>
+                        <p>Ostatnia zmierzona waga:
+                            <strong th:text="${latestWeight != null} ? ${latestWeight} + ' kg' : 'Brak danych'"></strong>
+                        </p>
+                        <p> Zmierzona dnia:
+                            <strong th:text="${latestWeightDate != null} ? ${latestWeightDate} : 'Brak danych'"></strong>
+                        </p>
                     </div>
                 </div>
 
@@ -23,8 +29,9 @@
                     <div class="field-container">
                         <label class="field-label" for="quick-weight">Aktualna waga (kg)</label>
                         <div class="input-with-button">
-                            <input type="number" id="quick-weight" name="weight" class="field-input" step="0.1" placeholder="85.5" required>
+                            <input type="number" id="quick-weight" name="weightValue" class="field-input" step="0.1" placeholder="85.5" required>
                             <button type="submit" class="button btn-primary">Zapisz</button>
+                            <p th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></p>
                         </div>
                     </div>
                 </form>
@@ -54,30 +61,45 @@
 
             <div class="profile-card">
                 <div class="profile-card-header">
-                    <h3 class="profile-card-title">Obwody ciała (Miesięcznie)</h3>
-                    <span class="update-timestamp">Ostatnia aktualizacja: 12 dni temu</span>
+                    <h3 class="profile-card-title">Obwody ciała</h3>
+                    <span> Zmierzona dnia:
+                        <strong th:text="${latestWeightDate != null} ? ${latestWeightDate} : 'Brak danych'"></strong>
+                    </span>
                 </div>
                 <form action="/profile/update-measurements" method="POST">
                     <div class="profile-card-body measurements-grid">
                         <div class="field-container">
-                            <label class="field-label" for="measure-biceps">Biceps (cm)</label>
-                            <input type="number" id="measure-biceps" name="biceps" class="field-input" step="0.1" placeholder="41.5">
+                            <label class="field-label" for="measure-chest">Klatka piersiowa (cm)</label>
+                            <input type="number" id="measure-chest" name="chest" class="field-input" step="0.1" >
                         </div>
                         <div class="field-container">
-                            <label class="field-label" for="measure-chest">Klatka piersiowa (cm)</label>
-                            <input type="number" id="measure-chest" name="chest" class="field-input" step="0.1" placeholder="112.0">
+                            <label class="field-label" for="measure-shoulders">Barki (cm)</label>
+                            <input type="number" id="measure-shoulders" name="shoulders" class="field-input" step="0.1">
+                        </div>
+                        <div class="field-container">
+                            <label class="field-label" for="measure-biceps">Biceps (cm)</label>
+                            <input type="number" id="measure-biceps" name="biceps" class="field-input" step="0.1">
+                        </div>
+                        <div class="field-container">
+                            <label class="field-label" for="measure-chest">Udo (cm)</label>
+                            <input type="number" id="measure-thigh" name="thigh" class="field-input" step="0.1">
                         </div>
                         <div class="field-container">
                             <label class="field-label" for="measure-waist">Pas (cm)</label>
-                            <input type="number" id="measure-waist" name="waist" class="field-input" step="0.1" placeholder="86.0">
+                            <input type="number" id="measure-waist" name="waist" class="field-input" step="0.1">
                         </div>
                         <div class="field-container">
-                            <label class="field-label" for="measure-thigh">Udo (cm)</label>
-                            <input type="number" id="measure-thigh" name="thigh" class="field-input" step="0.1" placeholder="62.5">
+                            <label class="field-label" for="measure-thigh">Brzuch (cm)</label>
+                            <input type="number" id="measure-belly" name="belly" class="field-input" step="0.1">
+                        </div>
+                        <div class="field-container">
+                            <label class="field-label" for="measure-thigh">Biodra (cm)</label>
+                            <input type="number" id="measure-hips" name="hips" class="field-input" step="0.1">
                         </div>
                         <div class="field-container wide btn-row-right">
                             <button type="submit" class="button btn-secondary">Aktualizuj obwody</button>
                         </div>
+                        <p th:if="${errorMessage}" th:text="${errorMessage}" style="color: red;"></p>
                     </div>
                 </form>
             </div>
