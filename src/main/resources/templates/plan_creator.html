@@ -5,76 +5,73 @@
 </head>
 <body>
 
-    <header th:replace="~{fragments/header}"></header>
+<header th:replace="~{fragments/header}"></header>
 
-    <main>
-        <div class="plan-preview">
-            
+<main>
+    <div class="plan-preview">
+
+        <form th:action="@{/plan-creator/save}" method="POST">
+
             <div class="weekly-config">
                 <div class="day-selection-field">
-                    <label for="days-count" class="select-label">Training sessions per week:</label>
+                    <label for="days-count" class="select-label">Sesje treningowe w tygodniu:</label>
                     <div class="select-wrapper">
-                        <select id="days-count" class="field-input">
+                        <select id="days-count" class="field-input" th:field="${session.workoutPlanDto.daysPerWeek}">
                             <option value="1">1 Day</option>
                             <option value="2">2 Days</option>
                             <option value="3">3 Days</option>
-                            <option value="4" selected>4 Days</option>
+                            <option value="4">4 Days</option>
                             <option value="5">5 Days</option>
                             <option value="6">6 Days</option>
                             <option value="7">7 Days</option>
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="day-selector">
-                    <input type="radio" id="day1" name="selectedDay" value="1" checked>
-                    <label for="day1" class="day-button">Day 1</label>
-
-                    <input type="radio" id="day2" name="selectedDay" value="2">
-                    <label for="day2" class="day-button">Day 2</label>
-
-                    <input type="radio" id="day3" name="selectedDay" value="3">
-                    <label for="day3" class="day-button">Day 3</label>
-
-                    <input type="radio" id="day4" name="selectedDay" value="4">
-                    <label for="day4" class="day-button">Day 4</label>
+                    <th:block th:each="dayNum : ${#numbers.sequence(1, session.workoutPlanDto.daysPerWeek)}">
+                        <a th:href="@{/plan-creator/{d}(d=${dayNum})}"
+                           class="day-button"
+                           th:classappend="${currentDay == dayNum} ? 'active' : ''"
+                           th:text="'Day ' + ${dayNum}">
+                            Day X
+                        </a>
+                    </th:block>
                 </div>
             </div>
 
-            <form>
-                
-                <div class="form-card">
-                    <div class="form-card-header">
-                        <span class="exercise-id">Exercise 1</span>
-                        <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
-                    </div>
-                    
-                    <div th:each=class="form-card-body">
-                        <div class="field-container wide">
-                            <label class="field-label">Nazwa ćwiczenia</label>
-                            <input type="text" class="field-input">
-                        </div>
-
-                        <div class="field-container">
-                            <label class="field-label">Serie</label>
-                            <input type="number" class="field-input"min="1">
-                        </div>
-
-                        <div class="field-container wide">
-                            <label class="field-label">Dodatkowe notatki</label>
-                            <input type="text" class="field-input">
-                        </div>
-                    </div>
+            <div class="form-card" th:each="exercise, stat : ${exercises}">
+                <div class="form-card-header">
+                    <span class="exercise-id" th:text="'Exercise ' + ${stat.count}">Exercise 1</span>
+                    <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
                 </div>
 
-                <div class="form-actions">
-                    <button type="button" class="button btn-secondary">＋ Dodaj ćwiczenie</button>
-                    <button type="submit" class="button btn-primary">💾 Zapisz cały plan</button>
-                </div>
+                <div class="form-card-body">
+                    <div class="field-container wide">
+                        <label class="field-label">Nazwa ćwiczenia</label>
+                        <input type="text" class="field-input" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].exerciseName}">
+                    </div>
 
-            </form>
-        </div>
-    </main>
-    <footer th:replace="~{fragments/footer}"></footer>
+                    <div class="field-container">
+                        <label class="field-label">Serie</label>
+                        <input type="number" class="field-input" min="1" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].targetSets}">
+                    </div>
+
+                    <div class="field-container wide">
+                        <label class="field-label">Dodatkowe notatki</label>
+                        <input type="text" class="field-input" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].notes}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="button btn-secondary">＋ Dodaj ćwiczenie</button>
+                <button type="submit" class="button btn-primary">💾 Zapisz cały plan</button>
+            </div>
+
+        </form>
+    </div>
+</main>
+<footer th:replace="~{fragments/footer}"></footer>
 </body>
 </html>

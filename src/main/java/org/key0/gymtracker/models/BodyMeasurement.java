@@ -2,7 +2,6 @@ package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDate;
 
 @Entity

@@ -16,7 +16,7 @@ public class PlanExercise {
     private String exerciseName;
 
     @Column(name="target_sets", nullable = false)
-    private String targetSets;
+    private int targetSets;
 
     @Column(name="notes", nullable = true)
     private String notes;

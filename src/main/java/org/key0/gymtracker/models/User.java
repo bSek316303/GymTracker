@@ -26,13 +26,11 @@ public class User implements UserDetails {
     private String email;
 
     @Column(nullable = false, length = 80)
-    private String password; // to wpisuje w formularzu (musi być zahaszowane w bazie!)
-
-    // --- Metody z interfejsu UserDetails (Spring ich wymaga) ---
+    private String password;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(); // na razie pusta lista ról
+        return List.of();
     }
 
     @Override
@@ -40,8 +38,6 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() { return this.username; }
-
-    public String getEmail() { return this.email; }
 
     @Override
     public boolean isAccountNonExpired() { return true; }
