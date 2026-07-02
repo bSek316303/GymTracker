@@ -49,40 +49,20 @@
                         <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
                     </div>
                     
-                    <div class="form-card-body">
+                    <div th:each=class="form-card-body">
                         <div class="field-container wide">
                             <label class="field-label">Nazwa ćwiczenia</label>
-                            <input type="text" class="field-input" placeholder="np. Wyciskanie sztangi na ławce poziomej">
+                            <input type="text" class="field-input">
                         </div>
 
                         <div class="field-container">
                             <label class="field-label">Serie</label>
-                            <input type="number" class="field-input" placeholder="4" min="1">
-                        </div>
-
-                        <div class="field-container">
-                            <label class="field-label">Powtórzenia</label>
-                            <input type="text" class="field-input" placeholder="8-10">
-                        </div>
-
-                        <div class="field-container">
-                            <label class="field-label">Tempo</label>
-                            <input type="text" class="field-input" placeholder="3010">
-                        </div>
-
-                        <div class="field-container">
-                            <label class="field-label">RIR (Zapas)</label>
-                            <input type="text" class="field-input" placeholder="1-2">
-                        </div>
-
-                        <div class="field-container">
-                            <label class="field-label">Czas przerwy</label>
-                            <input type="text" class="field-input" placeholder="2 min">
+                            <input type="number" class="field-input"min="1">
                         </div>
 
                         <div class="field-container wide">
                             <label class="field-label">Dodatkowe notatki</label>
-                            <input type="text" class="field-input" placeholder="np. Utrzymuj łokcie blisko ciała podczas wyciskania">
+                            <input type="text" class="field-input">
                         </div>
                     </div>
                 </div>

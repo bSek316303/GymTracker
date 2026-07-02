@@ -8,20 +8,24 @@
     <header th:replace="~{fragments/header}"></header>
 
     <main>
-        <li><a href="plan_creator.html">Edytuj swój plan</a></li>
+        <div th:if="${warningMessage}" class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> <span style="color: yellow" th:text="${warningMessage}"></span>
+        </div>
+        <li><a href="/plan/plan-creator">Edytuj swój plan</a></li>
         <div>
-            <div class="day-selector">
-                <input type="radio" id="day1" name="chosenDay" value="1" checked>
-                <label for="day1" class="day-button">Dzień 1</label>
+            <div class="day-selector" th:if="${plan != null}">
+                <th:block th:each="dayNum : ${#numbers.sequence(1, plan.daysPerWeek)}">
 
-                <input type="radio" id="day2" name="chosenDay" value="2">
-                <label for="day2" class="day-button">Dzień 2</label>
+                    <input type="radio"
+                           th:id="'day' + ${dayNum}"
+                           name="chosenDay"
+                           th:value="${dayNum}"
+                           th:checked="${dayNum == 1}">
+                    <label th:for="'day' + ${dayNum}"
+                           class="day-button"
+                           th:text="'Dzień ' + ${dayNum}">Dzień X</label>
 
-                <input type="radio" id="day3" name="chosenDay" value="3">
-                <label for="day3" class="day-button">Dzień 3</label>
-
-                <input type="radio" id="day4" name="chosenDay" value="4">
-                <label for="day4" class="day-button">Dzień 4</label>
+                </th:block>
             </div>
         </div>
     </main>

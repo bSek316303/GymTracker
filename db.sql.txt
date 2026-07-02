@@ -12,8 +12,7 @@ CREATE TABLE weights (
     weight_date DATE NOT NULL,
     weight FLOAT NOT NULL,
     user_id BIGINT NOT NULL,
-    
-    -- Powiązanie z tabelą users
+
     CONSTRAINT fk_weights_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -29,7 +28,25 @@ CREATE TABLE body_measurements (
     belly FLOAT NULL,
     hips FLOAT NULL,
     user_id BIGINT NOT NULL,
-    
-    -- Powiązanie z tabelą users
+
     CONSTRAINT fk_measurements_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE workout_plans (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plan_name VARCHAR(32) NOT NULL,
+    days_per_week INT NOT NULL,
+    user_id BIGINT NOT NULL,
+    CONSTRAINT fk_plans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE plan_exercises (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    exercise_name VARCHAR(64) NOT NULL,
+    target_sets INT NOT NULL,
+    notes VARCHAR(255) NULL,
+    day_number INT NOT NULL,
+    exercise_number INT NOT NULL,
+    plan_id BIGINT NOT NULL,
+    CONSTRAINT fk_exercises_plan FOREIGN KEY (plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE
 );
