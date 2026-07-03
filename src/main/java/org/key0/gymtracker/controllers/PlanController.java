@@ -4,6 +4,7 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
+import org.key0.gymtracker.models.BodyMeasurement;
 import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.WorkoutPlan;
@@ -185,6 +186,11 @@ public class PlanController {
 
         planExerciseRepository.deleteAll();
 
+        ArrayList<Boolean> checkDays = new ArrayList<>();
+        for(int i = 0; i < currentSessionDto.getDaysPerWeek(); i++) {
+            checkDays.add(false);
+        }
+
         currentSessionDto.getPlanExerciseList().stream().forEach(peDto -> {
             PlanExercise pe = new PlanExercise();
             pe.setDayNumber(peDto.getDayNumber());
@@ -193,8 +199,15 @@ public class PlanController {
             pe.setTargetSets(peDto.getTargetSets());
             pe.setNotes(peDto.getNotes());
             pe.setPlan(plan);
+            checkDays.get(peDto.getDayNumber() - 1).equals(true);
             planExerciseRepository.save(pe);
         });
+
+        for(int i = 0; i < checkDays.size(); i++){
+            if(!checkDays.get(i)){
+                currentSessionDto.setDaysPerWeek(currentSessionDto.getDaysPerWeek() - 1);
+            }
+        }
 
         return "redirect:/plan";
     }
