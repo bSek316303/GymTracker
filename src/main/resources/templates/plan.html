@@ -11,7 +11,7 @@
         <div th:if="${warningMessage}" class="alert alert-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i> <span style="color: yellow" th:text="${warningMessage}"></span>
         </div>
-        <li><a href="/plan/plan-creator">Edytuj swój plan</a></li>
+        <a href="/plan/plan-creator">Edytuj swój plan</a>
         <div>
             <div class="day-selector" th:if="${plan != null}">
                 <th:block th:each="dayNum : ${#numbers.sequence(1, plan.daysPerWeek)}">

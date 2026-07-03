@@ -103,42 +103,29 @@ select.field-input:focus {
     justify-content: center;
     padding: 11px 22px;
     font-size: 14px;
-    font-weight: 800; /* Grubsza czcionka dla sportowego charakteru */
+    font-weight: 800;
     border-radius: 6px;
     border: 2px solid transparent;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     user-select: none;
-    font-family: Arial, sans-serif;
-    text-transform: uppercase; /* Duże litery dodają dynamiki */
+    text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Przycisk Główny (Zapisz cały plan) */
 .button.btn-primary {
-    background-color: #ccff00;
-    color: #111416;
-}
-
-.button.btn-primary:hover {
-    background-color: #b5e600;
-    box-shadow: 0 4px 20px rgba(204, 255, 0, 0.35);
-}
-
-/* Przycisk Drugorzędny (Dodaj kolejne ćwiczenie) */
-.button.btn-secondary {
     background-color: transparent;
-    border-color: #282e33;
-    color: #bdc5cd;
-}
-
-.button.btn-secondary:hover {
-    background-color: #1d2125;
-    border-color: #ccff00;
+    border: 2px solid #ccff00;
     color: #ffffff;
 }
 
-/* --- Pola formularza (Inputs & Labels) --- */
+.button.btn-primary:hover {
+    background-color: rgba(204, 255, 0, 0.1);
+    border-color: #b5e600;
+    color: #ccff00;
+    box-shadow: 0 4px 20px rgba(204, 255, 0, 0.35);
+}
+
 .field-container {
     display: flex;
     flex-direction: column;

@@ -1,6 +1,7 @@
 package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Entity

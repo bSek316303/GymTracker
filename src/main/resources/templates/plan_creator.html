@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Plan Creator', ~{::.page-resources})}">
     <link class="page-resources" rel="stylesheet" th:href="@{/css/plan_creator.css}">
 </head>
@@ -10,62 +10,107 @@
 <main>
     <div class="plan-preview">
 
-        <form th:action="@{/plan-creator/save}" method="POST">
+        <form id="workout-form" th:action="@{/plan/plan-creator/{day}/save(day=${currentDay})}" th:object="${workoutPlanDto}" method="POST">
 
             <div class="weekly-config">
                 <div class="day-selection-field">
                     <label for="days-count" class="select-label">Sesje treningowe w tygodniu:</label>
                     <div class="select-wrapper">
-                        <select id="days-count" class="field-input" th:field="${session.workoutPlanDto.daysPerWeek}">
-                            <option value="1">1 Day</option>
-                            <option value="2">2 Days</option>
-                            <option value="3">3 Days</option>
-                            <option value="4">4 Days</option>
-                            <option value="5">5 Days</option>
-                            <option value="6">6 Days</option>
-                            <option value="7">7 Days</option>
+                        <select id="days-count"
+                                class="field-input"
+                                th:field="*{daysPerWeek}"
+                                onchange="submitWithDynamicUrl(this)">
+                            <option value="1">1 Dzień</option>
+                            <option value="2">2 Dni</option>
+                            <option value="3">3 Dni</option>
+                            <option value="4">4 Dni</option>
+                            <option value="5">5 Dni</option>
+                            <option value="6">6 Dni</option>
+                            <option value="7">7 Dni</option>
                         </select>
+
+                        <script th:inline="javascript">
+                            function submitWithDynamicUrl(selectElement) {
+                                const previousDays = /*[[${workoutPlanDto.daysPerWeek}]]*/ 3;
+                                const newDays = parseInt(selectElement.value);
+
+                                if (newDays < previousDays) {
+                                    const confirmed = confirm("Czy na pewno chcesz zmniejszyć liczbę dni? Ćwiczenia z usuwanych dni zostaną bezpowrotnie skasowane!");
+                                    if (!confirmed) {
+                                        selectElement.value = previousDays;
+                                        return;
+                                    }
+                                }
+
+                                const currentDay = /*[[${currentDay}]]*/ null;
+                                const form = document.getElementById('workout-form'); // Łapiemy główny formularz po ID
+
+                                if (currentDay !== null) {
+                                    form.action = `/plan/plan-creator/${currentDay}/change-days`;
+                                } else {
+                                    form.action = `/plan/plan-creator/change-days`;
+                                }
+                                form.submit();
+                            }
+                        </script>
                     </div>
                 </div>
 
                 <div class="day-selector">
-                    <th:block th:each="dayNum : ${#numbers.sequence(1, session.workoutPlanDto.daysPerWeek)}">
-                        <a th:href="@{/plan-creator/{d}(d=${dayNum})}"
-                           class="day-button"
-                           th:classappend="${currentDay == dayNum} ? 'active' : ''"
-                           th:text="'Day ' + ${dayNum}">
-                            Day X
-                        </a>
+                    <th:block th:each="i : ${#numbers.sequence(1, workoutPlanDto.daysPerWeek)}">
+                        <button type="submit"
+                                th:formaction="@{/plan/plan-creator/{cDay}/switch-day/{tDay}(cDay=${currentDay != null ? currentDay : 1}, tDay=${i})}"
+                                th:text="'Dzień ' + ${i}"
+                                th:class="${i == currentDay} ? 'btn-active' : 'btn-inactive'">
+                        </button>
                     </th:block>
                 </div>
             </div>
 
-            <div class="form-card" th:each="exercise, stat : ${exercises}">
-                <div class="form-card-header">
-                    <span class="exercise-id" th:text="'Exercise ' + ${stat.count}">Exercise 1</span>
-                    <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
-                </div>
+            <div th:if="${currentDay == null}" class="no-day-selected-prompt" style="text-align: center; padding: 40px; color: #bdc5cd;">
+                <p>👋 Wybierz dzień z listy powyżej, aby rozpocząć edycję lub dodawanie ćwiczeń.</p>
+            </div>
 
-                <div class="form-card-body">
-                    <div class="field-container wide">
-                        <label class="field-label">Nazwa ćwiczenia</label>
-                        <input type="text" class="field-input" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].exerciseName}">
-                    </div>
+            <div th:if="${currentDay != null}">
 
-                    <div class="field-container">
-                        <label class="field-label">Serie</label>
-                        <input type="number" class="field-input" min="1" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].targetSets}">
-                    </div>
+                <th:block th:each="exercise, stat : *{planExerciseList}">
+                    <div class="form-card" th:if="${exercise.dayNumber == currentDay}">
+                        <div class="form-card-header">
+                            <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
+                        </div>
 
-                    <div class="field-container wide">
-                        <label class="field-label">Dodatkowe notatki</label>
-                        <input type="text" class="field-input" th:field="${session.workoutPlanDto.planExerciseList[__${stat.index}__].notes}">
+                        <div class="form-card-body">
+                            <div class="field-container wide">
+                                <label class="field-label">Nazwa ćwiczenia</label>
+                                <input type="text" class="field-input" th:field="*{planExerciseList[__${stat.index}__].exerciseName}">
+                            </div>
+
+                            <div class="field-container">
+                                <label class="field-label">Serie</label>
+                                <input type="number" class="field-input" min="1" th:field="*{planExerciseList[__${stat.index}__].targetSets}">
+                            </div>
+
+                            <div class="field-container wide">
+                                <label class="field-label">Dodatkowe notatki</label>
+                                <input type="text" class="field-input" th:field="*{planExerciseList[__${stat.index}__].notes}">
+                            </div>
+
+                            <input type="hidden" th:field="*{planExerciseList[__${stat.index}__].dayNumber}">
+                            <input type="hidden" th:field="*{planExerciseList[__${stat.index}__].exerciseNumber}">
+                        </div>
                     </div>
+                </th:block>
+
+                <div class="form-actions" style="margin-bottom: 20px;">
+                    <button type="submit"
+                            th:formaction="@{/plan/plan-creator/{day}/add-exercise(day=${currentDay})}"
+                            class="button btn-primary">
+                        ＋ Dodaj ćwiczenie do tego dnia
+                    </button>
                 </div>
             </div>
 
-            <div class="form-actions">
-                <button type="button" class="button btn-secondary">＋ Dodaj ćwiczenie</button>
+            <div class="form-actions-global" style="border-top: 1px solid #282e33; padding-top: 20px; text-align: right;">
                 <button type="submit" class="button btn-primary">💾 Zapisz cały plan</button>
             </div>
 
