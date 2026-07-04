@@ -4,7 +4,6 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
-import org.key0.gymtracker.models.BodyMeasurement;
 import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.WorkoutPlan;
@@ -19,8 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/plan")
@@ -41,21 +38,18 @@ public class PlanController {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
 
-        // Szukamy planu w bazie
         WorkoutPlan plan = workoutPlanRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
-                    // JEŚLI NIE MA PLANU: Tworzymy i od razu zapisujemy bazowy szablon w bazie danych!
                     WorkoutPlan newPlan = new WorkoutPlan();
                     newPlan.setUser(user);
                     newPlan.setDaysPerWeek(3);
                     WorkoutPlan savedPlan = workoutPlanRepository.save(newPlan);
 
-                    // Dodajemy domyślne, puste ćwiczenie na start do Dnia 1
                     PlanExercise defaultExercise = new PlanExercise();
                     defaultExercise.setPlan(savedPlan);
                     defaultExercise.setExerciseName("Przykładowe ćwiczenie");
                     defaultExercise.setTargetSets(3);
-                    defaultExercise.setNotes("Zmień nazwę i serie");
+                    defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje odnośnie ćwiczenia");
                     defaultExercise.setDayNumber(1);
                     defaultExercise.setExerciseNumber(1);
                     planExerciseRepository.save(defaultExercise);
@@ -63,8 +57,6 @@ public class PlanController {
                     return savedPlan;
                 });
 
-        // W tym miejscu mamy PEWNOŚĆ, że plan istnieje w bazie (nowy lub stary).
-        // Mapujemy go do DTO do sesji tak jak wcześniej...
         List<PlanExercise> planExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
         WorkoutPlanDto workoutPlanDto = new WorkoutPlanDto();
         workoutPlanDto.setDaysPerWeek(plan.getDaysPerWeek());
@@ -90,6 +82,9 @@ public class PlanController {
     @GetMapping("/plan-creator/{day}")
     public String planCreatorForDay(@PathVariable("day") int day, HttpSession httpSession, Model model) {
         WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
+        if (workoutPlanDto == null) {
+            return "redirect:/plan/plan-creator";
+        }
 
         model.addAttribute("workoutPlanDto", workoutPlanDto);
         model.addAttribute("currentDay", day);
@@ -101,7 +96,7 @@ public class PlanController {
     public String switchDayAndSave(
             @PathVariable("currentDay") int currentDay,
             @PathVariable("targetDay") int targetDay,
-            @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+            @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
             HttpSession httpSession) {
 
         updateSessionFromForm(currentDay, updatedPlanDto, httpSession);
@@ -111,13 +106,14 @@ public class PlanController {
 
     @PostMapping("/plan-creator/{day}/add-exercise")
     public String addExerciseToDay(@PathVariable("day") Integer day,
-                                   @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+                                   @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
                                    HttpSession httpSession) {
         WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
         updateSessionFromForm(day, updatedPlanDto, httpSession);
 
         if (workoutPlanDto != null) {
+            ensureExerciseList(workoutPlanDto);
             long exerciseCount = workoutPlanDto.getPlanExerciseList().stream()
                     .filter(e -> e.getDayNumber() == day)
                     .count();
@@ -134,7 +130,7 @@ public class PlanController {
 
     @PostMapping(value = {"/plan-creator/change-days", "/plan-creator/{day}/change-days"})
     public String changeDays(@PathVariable(value = "day", required = false) Integer day,
-                             @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+                             @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
                              HttpSession httpSession,
                              @AuthenticationPrincipal UserDetails currentUser) {
 
@@ -156,6 +152,7 @@ public class PlanController {
 
         WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
         if (currentSessionDto != null) {
+            ensureExerciseList(currentSessionDto);
             currentSessionDto.setDaysPerWeek(updatedPlanDto.getDaysPerWeek());
             currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > updatedPlanDto.getDaysPerWeek());
             httpSession.setAttribute("workoutPlanDto", currentSessionDto);
@@ -183,15 +180,39 @@ public class PlanController {
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono planu w bazie"));
 
         WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
+        if (currentSessionDto == null) {
+            return "redirect:/plan/plan-creator";
+        }
+        ensureExerciseList(currentSessionDto);
 
-        planExerciseRepository.deleteAll();
+        int totalDays = currentSessionDto.getDaysPerWeek();
+        for (int currentDayCheck = 1; currentDayCheck <= totalDays; currentDayCheck++) {
 
-        ArrayList<Boolean> checkDays = new ArrayList<>();
-        for(int i = 0; i < currentSessionDto.getDaysPerWeek(); i++) {
-            checkDays.add(false);
+            final int emptyDayCandidate = currentDayCheck;
+
+            boolean hasExercises = currentSessionDto.getPlanExerciseList().stream()
+                    .anyMatch(pe -> pe.getDayNumber() == emptyDayCandidate);
+
+            if (!hasExercises) {
+
+                currentSessionDto.getPlanExerciseList().stream()
+                        .filter(pe -> pe.getDayNumber() > emptyDayCandidate)
+                        .forEach(pe -> pe.setDayNumber(pe.getDayNumber() - 1));
+
+                totalDays--;
+                currentSessionDto.setDaysPerWeek(totalDays);
+
+                currentDayCheck--;
+            }
         }
 
-        currentSessionDto.getPlanExerciseList().stream().forEach(peDto -> {
+        List<PlanExercise> userOldExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
+        planExerciseRepository.deleteAll(userOldExercises);
+
+        plan.setDaysPerWeek(currentSessionDto.getDaysPerWeek());
+        workoutPlanRepository.save(plan);
+
+        currentSessionDto.getPlanExerciseList().forEach(peDto -> {
             PlanExercise pe = new PlanExercise();
             pe.setDayNumber(peDto.getDayNumber());
             pe.setExerciseNumber(peDto.getExerciseNumber());
@@ -199,15 +220,10 @@ public class PlanController {
             pe.setTargetSets(peDto.getTargetSets());
             pe.setNotes(peDto.getNotes());
             pe.setPlan(plan);
-            checkDays.get(peDto.getDayNumber() - 1).equals(true);
             planExerciseRepository.save(pe);
         });
 
-        for(int i = 0; i < checkDays.size(); i++){
-            if(!checkDays.get(i)){
-                currentSessionDto.setDaysPerWeek(currentSessionDto.getDaysPerWeek() - 1);
-            }
-        }
+        httpSession.removeAttribute("workoutPlanDto");
 
         return "redirect:/plan";
     }
@@ -216,24 +232,44 @@ public class PlanController {
         WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
         if (currentSessionDto != null) {
+            ensureExerciseList(currentSessionDto);
             if (day != null) {
-                // Czyścimy stary stan dla tego konkretnego dnia i dodajemy nowy z formularza
-                currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() == day);
-                if (updatedPlanDto.getPlanExerciseList() != null) {
-                    currentSessionDto.getPlanExerciseList().addAll(updatedPlanDto.getPlanExerciseList());
+                if (updatedPlanDto == null || updatedPlanDto.getPlanExerciseList() == null || updatedPlanDto.getPlanExerciseList().isEmpty()) {
+                    return;
+                }
+
+                currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
+
+                if (updatedPlanDto != null && updatedPlanDto.getPlanExerciseList() != null) {
+
+                    List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
+                            .filter(ex -> ex != null)
+                            .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
+                            .filter(ex -> day.equals(ex.getDayNumber()))
+                            .toList();
+
+                    currentSessionDto.getPlanExerciseList().addAll(validExercisesFromForm);
                 }
             } else {
-                // Aktualizacja ogólna (np. zmiana liczby dni)
                 currentSessionDto.setDaysPerWeek(updatedPlanDto.getDaysPerWeek());
                 if (updatedPlanDto.getPlanExerciseList() != null) {
-                    currentSessionDto.setPlanExerciseList(updatedPlanDto.getPlanExerciseList());
+                    List<PlanExerciseDto> cleanList = updatedPlanDto.getPlanExerciseList().stream()
+                            .filter(ex -> ex != null && ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
+                            .toList();
+                    currentSessionDto.setPlanExerciseList(new ArrayList<>(cleanList));
                 }
             }
-            // Czyszczenie ćwiczeń wykraczających poza limit dni
+
+            // Czyszczenie na wypadek zmniejszenia liczby dni w konfiguratorze
             currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
 
-            // Zapisujemy zaktualizowany "koszyk" z powrotem do sesji
             httpSession.setAttribute("workoutPlanDto", currentSessionDto);
+        }
+    }
+
+    private void ensureExerciseList(WorkoutPlanDto workoutPlanDto) {
+        if (workoutPlanDto.getPlanExerciseList() == null) {
+            workoutPlanDto.setPlanExerciseList(new ArrayList<>());
         }
     }
 }

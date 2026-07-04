@@ -42,7 +42,7 @@ public class HomeController {
     public String profile(Model model, @AuthenticationPrincipal UserDetails currentUser) {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
-        List<Weight> weights = weightRepository.findByUserIdOrderByWeightAsc(user.getId());
+        List<Weight> weights = weightRepository.findByUserIdOrderByWeightDateAsc(user.getId());
         model.addAttribute("user", currentUser);
 
         Double latestWeight = null;

@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface WeightRepository extends JpaRepository<Weight, Long> {
-    List<Weight> findByUserIdOrderByWeightAsc(Long userId);
+    List<Weight> findByUserIdOrderByWeightDateAsc(Long userId);
 }
