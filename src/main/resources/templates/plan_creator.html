@@ -43,7 +43,7 @@
                                 }
 
                                 const currentDay = /*[[${currentDay}]]*/ null;
-                                const form = document.getElementById('workout-form'); // Łapiemy główny formularz po ID
+                                const form = document.getElementById('workout-form');
 
                                 if (currentDay !== null) {
                                     form.action = `/plan/plan-creator/${currentDay}/change-days`;
@@ -61,7 +61,7 @@
                         <button type="submit"
                                 th:formaction="@{/plan/plan-creator/{cDay}/switch-day/{tDay}(cDay=${currentDay != null ? currentDay : 1}, tDay=${i})}"
                                 th:text="'Dzień ' + ${i}"
-                                th:class="${i == currentDay} ? 'btn-active' : 'btn-inactive'">
+                                th:class="${i == currentDay} ? 'day-button-glow' : 'day-button'">
                         </button>
                     </th:block>
                 </div>

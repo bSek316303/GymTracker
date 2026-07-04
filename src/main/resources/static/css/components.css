@@ -58,6 +58,35 @@ select.field-input:focus {
     box-shadow: 0 0 10px rgba(204, 255, 0, 0.2);
 }
 
+.btn-link {
+    display: inline-block;    /* Sprawia, że link zachowuje się geometrycznie jak button */
+    text-decoration: none;    /* Usuwa domyślne podkreślenie tekstu */
+    text-align: center;       /* Środkuje tekst */
+    vertical-align: middle;
+    cursor: pointer;
+
+    padding: 12px 24px;
+    background-color: #1d2125;
+    color: #bdc5cd;
+    font-weight: bold;
+    border: 2px solid #ccff00;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+    width: 100%;
+}
+
+/* Efekt po najechaniu */
+.btn-link:hover {
+    background-color: #22272c;
+    border-color: #ccff00;
+    color: #ffffff;
+}
+
+.margin-bottom-md {
+    margin-bottom: 16px; /* Wypchnie przyciski dni w dół */
+}
+
 /* --- Przełącznik dni (Radio Buttons) --- */
 .day-selector {
     display: flex;
@@ -74,7 +103,6 @@ select.field-input:focus {
     padding: 12px 24px;
     background-color: #1d2125;
     color: #bdc5cd;
-    font-family: Arial, sans-serif;
     font-weight: bold;
     border: 2px solid #282e33;
     border-radius: 6px;
@@ -83,15 +111,28 @@ select.field-input:focus {
     user-select: none;
 }
 
-.day-selector .day-button:hover {
+.day-button-glow {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #1d2125;
+    color: #bdc5cd;
+    font-weight: bold;
+    border: 2px solid #ccff00;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+}
+
+.day-selector .day-button:hover .day-button-glow:hover {
     background-color: #22272c;
     border-color: #ccff00;
     color: #ffffff;
 }
 
 .day-selector input[type="radio"]:checked + .day-button {
-    background-color: #ccff00; /* Limonkowy aktywny dzień */
-    color: #111416;            /* Czarny tekst na neonowym tle dla idealnego kontrastu */
+    /*background-color: #ccff00; /* Limonkowy aktywny dzień */
+    /*color: #111416;            /* Czarny tekst na neonowym tle dla idealnego kontrastu */
     border-color: #ccff00;
     box-shadow: 0 0 15px rgba(204, 255, 0, 0.4); /* Efekt radioaktywnego świecenia glow */
 }
