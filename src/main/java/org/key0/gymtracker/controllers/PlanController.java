@@ -33,6 +33,21 @@ public class PlanController {
         this.planExerciseRepository = planExerciseRepository;
     }
 
+    @PostMapping("/{day}")
+    public String viewExercises(Model model, @AuthenticationPrincipal UserDetails currentUser, @PathVariable Integer day, HttpSession httpSession){
+        User user = userRepository.findByUsername(currentUser.getUsername())
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
+
+        WorkoutPlan plan = workoutPlanRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono planu w bazie"));
+
+        model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId()).stream().
+                filter(pe -> day.equals(pe.getDayNumber())));
+
+        httpSession.setAttribute("currentDay", day);
+        return "redirect:/plan";
+    }
+
     @GetMapping("/plan-creator")
     public String planCreator(HttpSession httpSession, Model model, @AuthenticationPrincipal UserDetails currentUser) {
         User user = userRepository.findByUsername(currentUser.getUsername())

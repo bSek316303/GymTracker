@@ -1,8 +1,11 @@
 package org.key0.gymtracker.controllers;
 
+import jakarta.servlet.http.HttpSession;
+import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.Weight;
 import org.key0.gymtracker.models.WorkoutPlan;
+import org.key0.gymtracker.repositories.PlanExerciseRepository;
 import org.key0.gymtracker.repositories.UserRepository;
 import org.key0.gymtracker.repositories.WeightRepository;
 import org.key0.gymtracker.repositories.WorkoutPlanRepository;
@@ -20,14 +23,16 @@ import java.util.Optional;
 @Controller
 public class HomeController {
 
-    private UserRepository userRepository;
-    private WeightRepository weightRepository;
-    private WorkoutPlanRepository workoutPlanRepository;
+    private final UserRepository userRepository;
+    private final WeightRepository weightRepository;
+    private final WorkoutPlanRepository workoutPlanRepository;
+    private final PlanExerciseRepository planExerciseRepository;
 
-    public HomeController (UserRepository userRepository, WeightRepository weightRepository, WorkoutPlanRepository workoutPlanRepository){
+    public HomeController (UserRepository userRepository, WeightRepository weightRepository, WorkoutPlanRepository workoutPlanRepository, PlanExerciseRepository planExerciseRepository){
         this.userRepository = userRepository;
         this.weightRepository = weightRepository;
         this.workoutPlanRepository = workoutPlanRepository;
+        this.planExerciseRepository = planExerciseRepository;
     }
 
     @GetMapping("/")
@@ -59,17 +64,36 @@ public class HomeController {
     }
 
     @GetMapping("/plan")
-    public String plan(Model model, @AuthenticationPrincipal UserDetails currentUser, RedirectAttributes redirectAttributes) {
+    public String plan(Model model, @AuthenticationPrincipal UserDetails currentUser, RedirectAttributes redirectAttributes, HttpSession httpSession) {
         User user = userRepository.findByUsername(currentUser.getUsername())
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
+
         Optional<WorkoutPlan> oPlan = workoutPlanRepository.findByUserId(user.getId());
-        if(oPlan.isPresent()) {
-            model.addAttribute("plan", oPlan.get());
-        } else {
-            model.addAttribute("plan", null);
+
+        if(oPlan.isEmpty()) {
             redirectAttributes.addFlashAttribute("warningMessage", "Nie znaleziono planu treningowego dla użytkownika");
             return "plan";
         }
+
+        WorkoutPlan plan = oPlan.get();
+        model.addAttribute("plan", plan);
+
+        Integer currDay = (Integer) httpSession.getAttribute("currentDay");
+        if (currDay == null) {
+            currDay = 1;
+            httpSession.setAttribute("currentDay", currDay);
+        }
+        model.addAttribute("currentDay", currDay);
+
+        final Integer currentDay = currDay;
+
+        List<PlanExercise> filteredExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId())
+                .stream()
+                .filter(pe -> currentDay.equals(pe.getDayNumber()))
+                .toList();
+
+        model.addAttribute("exercises", filteredExercises);
+
         return "plan";
     }
 

@@ -2,30 +2,43 @@
 <html lang="pl">
 <head th:replace="~{fragments/head :: head('Plan', ~{::.page-resources})}">
     <link class="page-resources" rel="stylesheet" th:href="@{/css/list.css}">
+    <link class="page-resources" rel="stylesheet" th:href="@{/css/exercise.css}">
 </head>
 <body>
 
     <header th:replace="~{fragments/header}"></header>
 
     <main>
-        <div th:if="${warningMessage}" class="alert alert-warning" role="alert">
-            <i class="bi bi-exclamation-triangle-fill"></i> <span style="color: yellow" th:text="${warningMessage}"></span>
-        </div>
-        <a type="button" class="btn-link margin-bottom-md" href='/plan/plan-creator'>Edytuj swój plan</a>
-        <div>
-            <div class="day-selector" th:if="${plan != null}">
-                <th:block th:each="dayNum : ${#numbers.sequence(1, plan.daysPerWeek)}">
-
-                    <input type="radio"
-                           th:id="'day' + ${dayNum}"
-                           name="chosenDay"
-                           th:value="${dayNum}"
-                           th:checked="${dayNum == 1}">
-                    <label th:for="'day' + ${dayNum}"
-                           class="day-button"
-                           th:text="'Dzień ' + ${dayNum}">Dzień X</label>
-
+        <form method="post">
+            <div class="day-selector">
+                <th:block th:each="i : ${#numbers.sequence(1, plan.daysPerWeek)}">
+                    <button type="submit"
+                            th:formaction="@{/plan/{day}(day=${i})}"
+                            th:text="'Dzień ' + ${i}"
+                            th:class="${i == currentDay} ? 'day-button-glow' : 'day-button'">
+                    </button>
                 </th:block>
+            </div>
+        </form>
+
+        <div class="exercises-container">
+            <div th:each="exercise : ${exercises}" class="exercise-card">
+                <div class="exercise-header">
+                    <i class="bi bi-activity exercise-icon"></i>
+                    <h3 th:text="${exercise.exerciseName}">Nazwa ćwiczenia</h3>
+                </div>
+
+                <div class="exercise-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Serii</span>
+                        <span class="detail-value" th:text="${exercise.targetSets}">0</span>
+                    </div>
+                </div>
+
+                <div th:if="${exercise.Notes != null && !exercise.Notes.isEmpty()}" class="exercise-notes">
+                    <i class="bi bi-sticky"></i>
+                    <p th:text="${exercise.Notes}">Tutaj pojawią się notatki do ćwiczenia...</p>
+                </div>
             </div>
         </div>
     </main>
