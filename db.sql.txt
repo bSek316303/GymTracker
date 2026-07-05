@@ -50,3 +50,36 @@ CREATE TABLE plan_exercises (
     plan_id BIGINT NOT NULL,
     CONSTRAINT fk_exercises_plan FOREIGN KEY (plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE
 );
+
+CREATE TABLE trainings (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plan_id BIGINT,
+    day_number INT NOT NULL,
+    training_date DATE NOT NULL,
+    training_week INT NOT NULL,
+
+    CONSTRAINT fk_trainings_workout FOREIGN KEY (plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE
+);
+
+create table exercise_results (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    training_id BIGINT,
+    exercise_id BIGINT,
+
+    CONSTRAINT fk_exercise_results_trainings FOREIGN KEY (training_id) REFERENCES trainings(id) ON DELETE CASCADE
+);
+
+CREATE TABLE set_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    exercise_result_id BIGINT NOT NULL,
+    set_number INT NOT NULL,
+
+    weight DECIMAL(5,2) NULL,
+    reps INT NULL,
+    duration_seconds INT NULL,
+    distance_meters DECIMAL(7,2) NULL,
+    calories INT NULL,
+
+    CONSTRAINT fk_set_logs_exercise_results FOREIGN KEY (exercise_result_id) REFERENCES exercise_results(id) ON DELETE CASCADE
+);
+
