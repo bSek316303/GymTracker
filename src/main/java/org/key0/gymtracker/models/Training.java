@@ -21,7 +21,7 @@ public class Training {
     private LocalDate trainingDate;
 
     @Column(name="training_week", nullable = true)
-    private Integer TrainingWeek;
+    private Integer trainingWeek;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)

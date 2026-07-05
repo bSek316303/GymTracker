@@ -8,7 +8,49 @@
 <header th:replace="~{fragments/header}"></header>
 
 <main>
+    <div th:if="${!emptyPlan}">
 
+        <!-- Pętla po wszystkich tygodniach (od 1 do weeksCount) -->
+        <div th:each="currentWeek : ${#numbers.sequence(1, weeksCount)}">
+
+            <details class="accordion-item" th:open="${weeksCount == 1}">
+                <summary class="accordion-header" th:text="'Tydzień ' + ${currentWeek}"></summary>
+
+                <div class="accordion-body">
+
+                    <!-- Pętla po WSZYSTKICH dniach z planu treningowego (np. od 1 do 3) -->
+                    <div th:each="dayNum : ${#numbers.sequence(1, daysInPlan)}" class="training-row">
+
+                        <!-- Szukamy w liście 'sessions', czy ten konkretny dzień w tym konkretnym tygodniu został wykonany -->
+                        <!-- Zapisujemy znaleziony trening do zmiennej pomocniczej 'completedSession' -->
+                        <div th:with="completedSession=${sessions.?[trainingWeek == __${currentWeek}__ && dayNumber == __${dayNum}__]}"
+                             th:class="${!completedSession.isEmpty()} ? 'training-day completed' : 'training-day'">
+
+                            <!-- Treść, jeśli trening JEST UKOŃCZONY -->
+                            <div th:if="${!completedSession.isEmpty()}" class="day-info">
+                                <span class="status-icon">✓</span>
+                                <span th:text="'Dzień ' + ${dayNum} + ' (Ukończono: ' + ${completedSession[0].trainingDate} + ')'"></span>
+                                <!-- Tutaj możesz podpiąć własne klasy przycisków/linków -->
+                                <a th:href="@{/training/details/{id}(id=${completedSession[0].id})}" class="btn-secondary">Zobacz podsumowanie</a>
+                            </div>
+
+                            <!-- Treść, jeśli trening NIE JEST UKOŃCZONY -->
+                            <div th:if="${completedSession.isEmpty()}" class="day-info">
+                                <span class="status-icon">○</span>
+                                <span th:text="'Dzień ' + ${dayNum}"></span>
+                                <!-- Link do rozpoczęcia tego konkretnego dnia w tym tygodniu -->
+                                <a th:href="@{/start-training(week=${currentWeek}, day=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </details>
+
+        </div>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/footer}"></footer>
