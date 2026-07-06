@@ -38,6 +38,7 @@ public class TrainingController {
             model.addAttribute("emptyPlan", true);
             return "choose-training";
         }
+
         model.addAttribute("emptyPlan", false);
         model.addAttribute("daysInPlan", userPlan.get().getDaysPerWeek());
 
