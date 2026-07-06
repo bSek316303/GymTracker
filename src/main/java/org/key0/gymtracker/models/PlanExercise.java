@@ -3,6 +3,7 @@ package org.key0.gymtracker.models;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.key0.gymtracker.enums.TrackingParameter;
 
 @Entity
 @Table(name="plan_exercises")
@@ -18,6 +19,10 @@ public class PlanExercise {
 
     @Column(name="target_sets", nullable = false)
     private int targetSets;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="tracking_parameter", nullable = false)
+    private TrackingParameter trackingParameter;
 
     @Column(name="notes", nullable = true)
     private String notes;

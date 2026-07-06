@@ -90,6 +90,19 @@
                                 <input type="number" class="field-input" min="1" th:field="*{planExerciseList[__${stat.index}__].targetSets}">
                             </div>
 
+                            <div class="field-container">
+                                <label class="field-label">Parametr do obliczania</label>
+                                <select class="field-input" th:field="*{planExerciseList[__${stat.index}__].trackingParameter}">
+                                    <option th:each="parameter : ${trackingParameters}"
+                                            th:value="${parameter.name()}"
+                                            th:text="${parameter.name() == 'REPETITIONS' ? 'Powtórzenia' :
+                                                    (parameter.name() == 'TIME' ? 'Czas' :
+                                                    (parameter.name() == 'DISTANCE' ? 'Dystans' : 'Kalorie'))}">
+                                        Powtórzenia
+                                    </option>
+                                </select>
+                            </div>
+
                             <div class="field-container wide">
                                 <label class="field-label">Dodatkowe notatki</label>
                                 <input type="text" class="field-input" th:field="*{planExerciseList[__${stat.index}__].notes}">

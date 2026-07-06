@@ -51,6 +51,9 @@ CREATE TABLE plan_exercises (
     CONSTRAINT fk_exercises_plan FOREIGN KEY (plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE
 );
 
+ALTER TABLE plan_exercise
+ADD COLUMN tracking_parameter ENUM('REPETITIONS',  'TIME', 'DISTANCE', 'CALORIES') NOT NULL;
+
 CREATE TABLE trainings (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     plan_id BIGINT,

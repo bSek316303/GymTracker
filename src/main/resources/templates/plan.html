@@ -9,6 +9,9 @@
     <header th:replace="~{fragments/header}"></header>
 
     <main>
+
+        <a type="button" class="btn-link margin-bottom-md" href='/plan/plan-creator'>Edytuj swój plan</a>
+
         <form method="post">
             <div class="day-selector">
                 <th:block th:each="i : ${#numbers.sequence(1, plan.daysPerWeek)}">
@@ -32,6 +35,15 @@
                     <div class="detail-item">
                         <span class="detail-label">Serii</span>
                         <span class="detail-value" th:text="${exercise.targetSets}">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Parametr</span>
+                        <span class="detail-value"
+                              th:text="${exercise.trackingParameter.name() == 'REPETITIONS' ? 'Powtórzenia' :
+                                      (exercise.trackingParameter.name() == 'TIME' ? 'Czas' :
+                                      (exercise.trackingParameter.name() == 'DISTANCE' ? 'Dystans' : 'Kalorie'))}">
+                            Powtórzenia
+                        </span>
                     </div>
                 </div>
 

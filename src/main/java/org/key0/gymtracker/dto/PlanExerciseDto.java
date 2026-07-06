@@ -13,6 +13,7 @@ public class PlanExerciseDto implements Serializable {
     private static final long serialVersionUID = 1L;
     private String exerciseName;
     private int targetSets;
+    private String trackingParameter;
     private String notes;
     private int dayNumber;
     private int exerciseNumber;

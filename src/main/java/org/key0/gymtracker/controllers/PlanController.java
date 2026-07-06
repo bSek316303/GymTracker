@@ -4,6 +4,7 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
+import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.WorkoutPlan;
@@ -60,10 +61,13 @@ public class PlanController {
                     newPlan.setDaysPerWeek(3);
                     WorkoutPlan savedPlan = workoutPlanRepository.save(newPlan);
 
+                    TrackingParameter defaultTrackingParameter = TrackingParameter.REPETITIONS;
+
                     PlanExercise defaultExercise = new PlanExercise();
                     defaultExercise.setPlan(savedPlan);
                     defaultExercise.setExerciseName("Przykładowe ćwiczenie");
                     defaultExercise.setTargetSets(3);
+                    defaultExercise.setTrackingParameter(defaultTrackingParameter);
                     defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje odnośnie ćwiczenia");
                     defaultExercise.setDayNumber(1);
                     defaultExercise.setExerciseNumber(1);
@@ -81,6 +85,7 @@ public class PlanController {
             workoutPlanDto.getPlanExerciseList().add(new PlanExerciseDto(
                     pe.getExerciseName(),
                     pe.getTargetSets(),
+                    pe.getTrackingParameter().name(),
                     pe.getNotes(),
                     pe.getDayNumber(),
                     pe.getExerciseNumber()
@@ -90,6 +95,7 @@ public class PlanController {
         httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
         model.addAttribute("workoutPlanDto", workoutPlanDto);
         model.addAttribute("currentDay", null);
+        model.addAttribute("trackingParameters", TrackingParameter.values());
 
         return "plan_creator";
     }
@@ -103,6 +109,7 @@ public class PlanController {
 
         model.addAttribute("workoutPlanDto", workoutPlanDto);
         model.addAttribute("currentDay", day);
+        model.addAttribute("trackingParameters", TrackingParameter.values());
 
         return "plan_creator";
     }
@@ -134,7 +141,7 @@ public class PlanController {
                     .count();
 
             workoutPlanDto.getPlanExerciseList().add(
-                    new PlanExerciseDto("", 3, "", day, (int) (exerciseCount + 1))
+                    new PlanExerciseDto("", 3, "REPETITIONS",  "", day, (int) (exerciseCount + 1))
             );
 
             httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
@@ -233,6 +240,7 @@ public class PlanController {
             pe.setExerciseNumber(peDto.getExerciseNumber());
             pe.setExerciseName(peDto.getExerciseName());
             pe.setTargetSets(peDto.getTargetSets());
+            pe.setTrackingParameter(parseTrackingParameter(peDto.getTrackingParameter()));
             pe.setNotes(peDto.getNotes());
             pe.setPlan(plan);
             planExerciseRepository.save(pe);
@@ -277,6 +285,9 @@ public class PlanController {
 
             // Czyszczenie na wypadek zmniejszenia liczby dni w konfiguratorze
             currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
+            currentSessionDto.getPlanExerciseList().forEach(ex -> ex.setTrackingParameter(
+                    parseTrackingParameter(ex.getTrackingParameter()).name()
+            ));
 
             httpSession.setAttribute("workoutPlanDto", currentSessionDto);
         }
@@ -285,6 +296,18 @@ public class PlanController {
     private void ensureExerciseList(WorkoutPlanDto workoutPlanDto) {
         if (workoutPlanDto.getPlanExerciseList() == null) {
             workoutPlanDto.setPlanExerciseList(new ArrayList<>());
+        }
+    }
+
+    private TrackingParameter parseTrackingParameter(String trackingParameter) {
+        if (trackingParameter == null || trackingParameter.isBlank()) {
+            return TrackingParameter.REPETITIONS;
+        }
+
+        try {
+            return TrackingParameter.valueOf(trackingParameter);
+        } catch (IllegalArgumentException ex) {
+            return TrackingParameter.REPETITIONS;
         }
     }
 }
