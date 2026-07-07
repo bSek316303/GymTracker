@@ -1,0 +1,199 @@
+main > div {
+    width: min(100%, 760px);
+    margin: 0 auto;
+}
+
+main > div > div {
+    width: 100%;
+}
+
+.accordion-item {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 16px;
+    overflow: hidden;
+    background-color: #1d2125;
+    border: 1px solid #282e33;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.accordion-item[open] {
+    border-color: #343a40;
+}
+
+.accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 20px;
+    color: #ffffff;
+    background-color: #22272c;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.accordion-header::-webkit-details-marker {
+    display: none;
+}
+
+.accordion-header::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #bdc5cd;
+    border-bottom: 2px solid #bdc5cd;
+    transform: rotate(45deg);
+    transition: transform 0.25s ease, border-color 0.2s ease;
+}
+
+.accordion-item[open] .accordion-header {
+    color: #ccff00;
+    border-bottom: 1px solid #282e33;
+}
+
+.accordion-item[open] .accordion-header::after {
+    border-color: #ccff00;
+    transform: rotate(-135deg);
+}
+
+.accordion-header:hover {
+    background-color: #252b30;
+    color: #ccff00;
+}
+
+.accordion-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px;
+}
+
+.training-row {
+    width: 100%;
+}
+
+.training-day {
+    background-color: #111416;
+    border: 1px solid #282e33;
+    border-radius: 8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.training-day:hover {
+    border-color: #ccff00;
+    box-shadow: 0 6px 18px rgba(204, 255, 0, 0.12);
+    transform: translateY(-1px);
+}
+
+.training-day.completed {
+    border-color: rgba(204, 255, 0, 0.5);
+    background-color: rgba(204, 255, 0, 0.04);
+}
+
+.day-info {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    color: #bdc5cd;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 2px solid #282e33;
+    border-radius: 50%;
+    color: #68727d;
+    font-size: 18px;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.training-day.completed .status-icon {
+    border-color: #ccff00;
+    color: #ccff00;
+    box-shadow: 0 0 12px rgba(204, 255, 0, 0.25);
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 9px 18px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+    color: #ffffff;
+    background-color: transparent;
+    border-color: #ccff00;
+}
+
+.btn-primary:hover {
+    color: #ccff00;
+    background-color: rgba(204, 255, 0, 0.1);
+    border-color: #b5e600;
+    box-shadow: 0 4px 18px rgba(204, 255, 0, 0.3);
+}
+
+.btn-secondary {
+    color: #bdc5cd;
+    background-color: #1d2125;
+    border-color: #343a40;
+}
+
+.btn-secondary:hover {
+    color: #ffffff;
+    border-color: #ccff00;
+    background-color: #22272c;
+}
+
+@media (max-width: 640px) {
+    main {
+        padding-inline: 14px;
+    }
+
+    .accordion-header {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+
+    .accordion-body {
+        padding: 14px;
+    }
+
+    .day-info {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}

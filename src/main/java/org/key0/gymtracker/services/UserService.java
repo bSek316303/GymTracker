@@ -2,6 +2,7 @@ package org.key0.gymtracker.services;
 
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.repositories.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,5 +31,11 @@ public class UserService {
         user.setPassword(encodedPassword);
 
         userRepository.save(user);
+    }
+
+    public User getUser(UserDetails userDetails){
+        User user = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + userDetails.getUsername()));
+        return user;
     }
 }

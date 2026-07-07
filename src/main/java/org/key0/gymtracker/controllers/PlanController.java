@@ -187,6 +187,28 @@ public class PlanController {
         return "redirect:/plan/plan-creator";
     }
 
+    @PostMapping("/plan-creator/remove-exercise/{day}/{exerciseNumber}")
+    public String removeExerciseFromDay(@PathVariable("day") Integer day,
+                                        @PathVariable("exerciseNumber") Integer exerciseNumber,
+                                        @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
+                                        HttpSession httpSession) {
+        updateSessionFromForm(day, updatedPlanDto, httpSession);
+
+        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
+
+        if (workoutPlanDto != null && workoutPlanDto.getPlanExerciseList() != null) {
+            workoutPlanDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() == day && ex.getExerciseNumber() == exerciseNumber);
+
+            workoutPlanDto.getPlanExerciseList().stream()
+                    .filter(ex -> ex.getDayNumber() == day && ex.getExerciseNumber() > exerciseNumber)
+                    .forEach(ex -> ex.setExerciseNumber(ex.getExerciseNumber() - 1));
+
+            httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+        }
+
+        return "redirect:/plan/plan-creator/" + day;
+    }
+
     @PostMapping(value = {"/plan-creator/save", "/plan-creator/{day}/save"})
     public String savePlan(@PathVariable(value = "day", required = false) Integer day,
                            @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,

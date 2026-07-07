@@ -32,19 +32,19 @@ main {
 
 header {
     font-family: 'Rajdhani', sans-serif;
-    background-color: #1d2125; /* Jaśniejsza warstwa węgla */
+    background-color: #1d2125;
     color: #ffffff;
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #282e33; /* Techniczna linia podziału */
+    border-bottom: 2px solid #282e33;
 }
 
 header .logo {
     font-size: 24px;
     font-weight: bold;
-    color: #ccff00; /* Logo świeci na radioaktywną limonkę */
+    color: #ccff00;
     text-decoration: none;
     letter-spacing: 1px;
 }

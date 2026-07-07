@@ -76,7 +76,12 @@
                 <th:block th:each="exercise, stat : *{planExerciseList}">
                     <div class="form-card" th:if="${exercise.dayNumber == currentDay}">
                         <div class="form-card-header">
-                            <button type="button" class="btn-delete-card" title="Delete exercise">&times;</button>
+                            <button type="submit"
+                                    th:formaction="@{/plan/plan-creator/remove-exercise/{day}/{exercise-number}(day=${currentDay}, exercise-number=${exercise.exerciseNumber})}"
+                                    class="btn-delete-card"
+                                    title="Delete exercise">
+                                &times;
+                            </button>
                         </div>
 
                         <div class="form-card-body">
