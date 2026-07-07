@@ -2,6 +2,7 @@ package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.key0.gymtracker.enums.TrackingParameter;
 
 @Entity
 @Table(name="set_logs")
@@ -25,12 +26,47 @@ public class SetLog {
     private Integer durationSeconds;
 
     @Column(name="distance_meters", nullable = true)
-    private Double distanceMeters;
+    private Integer distanceMeters;
 
     @Column(name="calories", nullable = true)
     private Integer calories;
 
+    @Column(name="rir", nullable = true)
+    private Integer rir;
+
+    @Column(name="rest_time", nullable = true)
+    private Integer restTime;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_result_id", nullable = false)
     private ExerciseResult exerciseResult;
+
+    public void setValueByParameter(Integer value, TrackingParameter parameter){
+        switch (parameter) {
+            case TrackingParameter.REPETITIONS -> {
+                this.reps = value;
+                this.durationSeconds = null;
+                this.distanceMeters = null;
+                this.calories = null;
+            }
+            case TrackingParameter.DISTANCE -> {
+                this.reps = null;
+                this.durationSeconds = null;
+                this.distanceMeters = value;
+                this.calories = null;
+            }
+            case TrackingParameter.TIME -> {
+                this.reps = null;
+                this.durationSeconds = value;
+                this.distanceMeters = null;
+                this.calories = null;
+            }
+            case TrackingParameter.CALORIES -> {
+                this.reps = null;
+                this.durationSeconds = null;
+                this.distanceMeters = null;
+                this.calories = value;
+            }
+        }
+    }
 }

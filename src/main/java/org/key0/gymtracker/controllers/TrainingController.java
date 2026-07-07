@@ -3,20 +3,17 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.key0.gymtracker.dto.ExerciseResultDto;
-import org.key0.gymtracker.models.PlanExercise;
-import org.key0.gymtracker.models.Training;
-import org.key0.gymtracker.models.User;
-import org.key0.gymtracker.models.WorkoutPlan;
+import org.key0.gymtracker.enums.TrackingParameter;
+import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
 import org.key0.gymtracker.services.UserService;
 import org.key0.gymtracker.services.WorkoutService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,6 +28,7 @@ public class TrainingController {
     private final ExerciseResultRepository exerciseResultRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
+    private final SetLogRepository setLogRepository;
     private final UserRepository userRepository;
     private final UserService userService;
     private final WorkoutService workoutService;
@@ -72,7 +70,7 @@ public class TrainingController {
         try{
             User user = userService.getUser(userDetails);
             WorkoutPlan workoutPlan = workoutService.getWorkoutPlan(user);
-            Optional<Training> oTraining = trainingRepository.findByTrainingWeekAndDayNumber(weekNumber, dayNumber);
+            Optional<Training> oTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan);
 
             if(oTraining.isEmpty()){
                 Training newTraining = new Training();
@@ -94,7 +92,7 @@ public class TrainingController {
                 exerciseResultDtos = new ArrayList<>();
                 var finalExerciseResultDtos = exerciseResultDtos;
                 exercisesFromPlan.forEach(planExercise ->
-                        finalExerciseResultDtos.add(new ExerciseResultDto(trainingId, planExercise.getTargetSets(), planExercise.getTrackingParameter()))
+                        finalExerciseResultDtos.add(new ExerciseResultDto(trainingId, planExercise.getTargetSets(), planExercise))
                 );
                 httpSession.setAttribute("exerciseResultDtos", finalExerciseResultDtos);
             }
@@ -107,9 +105,17 @@ public class TrainingController {
             int exerciseIndex = exercisesFromPlan.indexOf(currentPlanExercise);
             ExerciseResultDto currentExerciseResultDto = exerciseResultDtos.get(exerciseIndex);
 
+            httpSession.setAttribute("lastViewedExerciseNumber", exerciseNumber);
+
             boolean isLastExercise = (exerciseNumber == exercisesFromPlan.size());
 
-            model.addAttribute("planExercise", currentPlanExercise);
+            if(weekNumber > 1){
+                List<SetLog> lastWeekResultsInExercise = workoutService.getSetLogsByWorkoutAndWeek(workoutPlan, weekNumber - 1, dayNumber, currentPlanExercise);
+                model.addAttribute("historyExerciseResults", lastWeekResultsInExercise);
+            } else model.addAttribute("historyExerciseResults", null);
+
+            model.addAttribute("parameter", currentPlanExercise.getTrackingParameter().toString());
+            model.addAttribute("planExerciseList", exercisesFromPlan);
             model.addAttribute("currentExerciseResult", currentExerciseResultDto);
             model.addAttribute("isLastExercise", isLastExercise);
             model.addAttribute("currentExerciseNumber", exerciseNumber);
@@ -118,6 +124,78 @@ public class TrainingController {
 
             return "training";
         } catch(RuntimeException e){
+            model.addAttribute("error", e.getMessage());
+        }
+        return "error";
+    }
+
+    @PostMapping("/{week-number}/{day-number}/{target-exercise-number}")
+    @Transactional
+    public String saveExerciseResult(@AuthenticationPrincipal UserDetails userDetails,
+                                     @PathVariable("week-number") Integer weekNumber,
+                                     @PathVariable("day-number") Integer dayNumber,
+                                     @PathVariable("target-exercise-number") Integer targetExerciseNumber,
+                                     HttpSession httpSession, Model model) {
+        try {
+            User user = userService.getUser(userDetails);
+            WorkoutPlan workoutPlan = workoutService.getWorkoutPlan(user);
+
+            Training training = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan)
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono aktywnego treningu."));
+
+            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber);
+
+            final Integer sourceExerciseNumber = (Integer) httpSession.getAttribute("lastViewedExerciseNumber");
+
+            PlanExercise sourcePlanExercise = exercisesFromPlan.stream()
+                    .filter(ex ->  sourceExerciseNumber.equals(ex.getExerciseNumber()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono bazowego ćwiczenia o numerze: " + sourceExerciseNumber));
+
+            ExerciseResult exerciseResult = exerciseResultRepository.findByTrainingAndExercise(training, sourcePlanExercise)
+                    .orElse(new ExerciseResult());
+
+            exerciseResult.setTraining(training);
+            exerciseResult.setExercise(sourcePlanExercise);
+            ExerciseResult savedResult = exerciseResultRepository.save(exerciseResult);
+
+            // Jeśli to była aktualizacja istniejącego ćwiczenia, czyścimy stare serie z bazy przed zapisem nowych
+            if (exerciseResult.getId() != null) {
+                setLogRepository.deleteByExerciseResult(savedResult);
+            }
+
+            List<ExerciseResultDto> exerciseResultDtos = (List<ExerciseResultDto>)httpSession.getAttribute("exerciseResultDtos");
+
+            ExerciseResultDto exerciseResultDto = exerciseResultDtos.stream()
+                    .filter(dto -> sourceExerciseNumber.equals(dto.getExercise().getExerciseNumber()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono danych sesyjnych dla ćwiczenia o numerze: " + sourceExerciseNumber));
+
+            List<SetLog> logsToSave = new ArrayList<>();
+            exerciseResultDto.getSetLogs().forEach(setLogDto -> {
+                SetLog setLog = setLogDto.toSetLogWithoutParameter();
+                TrackingParameter parameter = exerciseResultDto.getExercise().getTrackingParameter();
+                setLog.setValueByParameter(setLogDto.getParameter(), parameter);
+                setLog.setExerciseResult(savedResult);
+                logsToSave.add(setLog);
+            });
+            setLogRepository.saveAll(logsToSave);
+
+            int sourceIndex = exercisesFromPlan.indexOf(sourcePlanExercise);
+            exerciseResultDtos.set(sourceIndex, exerciseResultDto);
+            httpSession.setAttribute("exerciseResultDtos", exerciseResultDtos);
+
+            boolean isOutOfBounds = (targetExerciseNumber > exercisesFromPlan.size());
+            boolean isLastExerciseButtonNormalClick = (sourceExerciseNumber == exercisesFromPlan.size() && targetExerciseNumber.equals(sourceExerciseNumber));
+            if (isOutOfBounds || isLastExerciseButtonNormalClick) {
+                httpSession.removeAttribute("exerciseResultDtos");
+                httpSession.removeAttribute("lastViewedExerciseNumber");
+                return "redirect:/";
+            }
+
+            return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
+
+        } catch(Exception e) {
             model.addAttribute("error", e.getMessage());
         }
         return "error";

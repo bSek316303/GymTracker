@@ -25,13 +25,13 @@
                             <div th:if="${!completedSession.isEmpty()}" class="day-info">
                                 <span class="status-icon">✓</span>
                                 <span th:text="'Dzień ' + ${dayNum} + ' (Ukończono: ' + ${completedSession[0].trainingDate} + ')'"></span>
-                                <a th:href="@{/training/details/{id}(id=${completedSession[0].id})}" class="btn-secondary">Zobacz podsumowanie</a>
+                                <a th:href="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
                             </div>
 
                             <div th:if="${completedSession.isEmpty()}" class="day-info">
                                 <span class="status-icon">○</span>
                                 <span th:text="'Dzień ' + ${dayNum}"></span>
-                                <a th:href="@{/start-training(week=${currentWeek}, day=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
+                                <a th:href="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
                             </div>
 
                         </div>

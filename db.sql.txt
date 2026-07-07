@@ -83,6 +83,9 @@ CREATE TABLE set_logs (
     distance_meters DECIMAL(7,2) NULL,
     calories INT NULL,
 
+    rir INT NULL,
+    rest_time INT NULL,
+
     CONSTRAINT fk_set_logs_exercise_results FOREIGN KEY (exercise_result_id) REFERENCES exercise_results(id) ON DELETE CASCADE
 );
 

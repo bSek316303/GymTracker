@@ -1,0 +1,206 @@
+/* Widok treningu */
+.main-content {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.alert {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-weight: 700;
+}
+
+.alert-danger {
+    color: #ffb3b3;
+    background-color: rgba(231, 76, 60, 0.12);
+    border: 1px solid rgba(231, 76, 60, 0.45);
+}
+
+.exercise-container {
+    width: 100%;
+}
+
+.exercise-name {
+    margin: 0 0 20px;
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 1.2;
+    text-align: center;
+}
+
+.custom-dropdown {
+    margin-bottom: 20px;
+}
+
+.exercise-tile {
+    text-decoration: none;
+}
+
+.exercise-tile.active {
+    background-color: #ccff00;
+    border-color: #ccff00;
+    color: #111416;
+    box-shadow: 0 0 15px rgba(204, 255, 0, 0.3);
+}
+
+.parameters-wrapper {
+    display: grid;
+    gap: 24px;
+}
+
+.set-card {
+    margin-bottom: 30px;
+    overflow: hidden;
+    background-color: #1d2125;
+    border: 1px solid #282e33;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.set-title {
+    margin: 0;
+    padding: 12px 16px;
+    background-color: #22272c;
+    border-bottom: 1px solid #282e33;
+    color: #ffffff;
+    font-size: 20px;
+    line-height: 1.2;
+}
+
+.set-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.set-table th,
+.set-table td {
+    width: 25%;
+    padding: 10px;
+    border-bottom: 1px solid #282e33;
+}
+
+.set-table th {
+    color: #bdc5cd;
+    background-color: #15181c;
+    font-size: 12px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.set-table input[type="number"] {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 6px;
+    border: 1px solid #282e33;
+    border-radius: 4px;
+    background-color: #111416;
+    color: #ffffff;
+    font-size: 14px;
+    text-align: center;
+}
+
+.set-table input[type="number"]:focus {
+    border-color: #ccff00;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.18);
+}
+
+.history-wrapper {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #282e33;
+}
+
+.history-title {
+    margin: 0 0 20px;
+    color: #bdc5cd;
+    font-size: 22px;
+}
+
+.history-card {
+    margin-bottom: 20px;
+    opacity: 0.82;
+}
+
+.history-card .set-title {
+    color: #bdc5cd;
+    font-size: 18px;
+}
+
+.history-card .set-table input[type="number"] {
+    background-color: transparent;
+    color: #bdc5cd;
+    cursor: not-allowed;
+}
+
+.actions-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.button.btn-success {
+    background-color: #2ecc71;
+    border-color: #2ecc71;
+    color: #111416;
+}
+
+.button.btn-success:hover {
+    background-color: #34d87a;
+    border-color: #34d87a;
+    box-shadow: 0 4px 20px rgba(46, 204, 113, 0.35);
+}
+
+@media (max-width: 640px) {
+    .main-content {
+        width: 100%;
+    }
+
+    .exercise-name {
+        font-size: 22px;
+    }
+
+    .set-card {
+        margin-bottom: 18px;
+    }
+
+    .set-title {
+        padding: 10px 12px;
+        font-size: 18px;
+    }
+
+    .set-table th,
+    .set-table td {
+        padding: 8px 5px;
+    }
+
+    .set-table th {
+        font-size: 10px;
+    }
+
+    .set-table input[type="number"] {
+        padding: 7px 4px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 380px) {
+    .set-table th,
+    .set-table td {
+        padding: 6px 3px;
+    }
+
+    .set-table th {
+        font-size: 9px;
+    }
+
+    .set-table input[type="number"] {
+        padding: 6px 3px;
+        font-size: 12px;
+    }
+}

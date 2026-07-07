@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface TrainingRepository extends JpaRepository<Training, Long> {
     List<Training> findByPlanOrderByTrainingDateDesc(WorkoutPlan plan);
-    Optional<Training> findByTrainingWeekAndDayNumber(Integer trainingWeek, Integer dayNumber);
+    Optional<Training> findByTrainingWeekAndDayNumberAndPlan(Integer trainingWeek, Integer dayNumber, WorkoutPlan plan);
 }
