@@ -81,7 +81,7 @@ public class TrainingController {
                 oTraining = Optional.of(newTraining);
             }
 
-            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber);
+            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByDayNumberAsc(workoutPlan.getId(), dayNumber);
 
             final Long trainingId = oTraining.get().getId();
 
@@ -142,7 +142,7 @@ public class TrainingController {
             Training training = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan)
                     .orElseThrow(() -> new RuntimeException("Nie znaleziono aktywnego treningu."));
 
-            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber);
+            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByDayNumberAsc(workoutPlan.getId(), dayNumber);
 
             final Integer sourceExerciseNumber = (Integer) httpSession.getAttribute("lastViewedExerciseNumber");
 

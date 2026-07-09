@@ -7,11 +7,10 @@ import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -116,26 +115,65 @@ public class PlanService {
         return plan;
     }
 
-    public void updateExercises(WorkoutPlanDto planDto, User user){
+    public void updateExercises(WorkoutPlanDto planDto, User user) {
         WorkoutPlan plan = getWorkoutPlan(user);
-        List<PlanExerciseDto> planExerciseDtos = planDto.getPlanExerciseList();
-        List<PlanExerciseDto> sortedExercises = planExerciseDtos.stream()
-                .sorted(Comparator.comparing(PlanExerciseDto::getDayNumber)
-                        .thenComparing(PlanExerciseDto::getExerciseNumber))
+        Map<String, PlanExercise> oldExercisesMap = getPlanExercisesMap(user);
+
+        List<PlanExercise> exercisesToSave = planDto.getPlanExerciseList().stream()
+                .map(dto -> {
+                    String key = String.valueOf(dto.getDayNumber()) + "-" + String.valueOf(dto.getExerciseNumber());
+
+                    PlanExercise existing = oldExercisesMap.remove(key);
+
+                    if (existing != null) {
+                        updatePlanExerciseFromDto(existing, dto);
+                        return existing;
+                    } else {
+                        PlanExercise newPe = dto.toPlanExerciseWithoutPlan();
+                        newPe.setPlan(plan);
+                        return newPe;
+                    }
+                })
                 .toList();
 
-        List<PlanExercise> currentExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
-        if(currentExercises.size() == planExerciseDtos.size()){
-            currentExercises.forEach(pe -> {
-                //updatePlanExerciseFromDto(pe, )
-            });
-        } else if (currentExercises.size() > planExerciseDtos.size()){
+        Collection<PlanExercise> exercisesToDelete = oldExercisesMap.values();
 
-        } else {
-
+        if (!exercisesToSave.isEmpty()) {
+            planExerciseRepository.saveAll(exercisesToSave);
         }
-        // TODO dodać logike aktualizacji ćwiczeń -> jeżeli planExerciseDtos.size() == currentExercises().size() -> nadpisz,
-        //  a w innych wypadkach trzeba dodatkowej logiki postępowania z ćwiczeniami nadprogramowymi.
+        if (!exercisesToDelete.isEmpty()) {
+            planExerciseRepository.deleteAll(exercisesToDelete);
+        }
+    }
+
+    @Transactional
+    public void swapDayNumbers(int day, int firstNumber, int secondNumber, User user){
+        Map<String, PlanExercise> planExerciseMap = getPlanExercisesMap(user);
+
+        PlanExercise firstPe = planExerciseMap.get(String.valueOf(day) + "-" + String.valueOf(firstNumber));
+        PlanExercise secondPe = planExerciseMap.get(String.valueOf(day) + "-" + String.valueOf(secondNumber));
+
+        if (firstPe == null || secondPe == null) throw new IllegalArgumentException("Nie znaleziono ćwiczeń do zamiany");
+
+        firstPe.setExerciseNumber(-1);
+        planExerciseRepository.saveAndFlush(firstPe);
+
+        secondPe.setExerciseNumber(firstNumber);
+        planExerciseRepository.saveAndFlush(secondPe);
+
+        firstPe.setExerciseNumber(secondNumber);
+        planExerciseRepository.save(firstPe);
+    }
+
+    public Map<String, PlanExercise> getPlanExercisesMap(User user){
+        WorkoutPlan plan = getWorkoutPlan(user);
+        Map<String, PlanExercise> mapToReturn = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId())
+                .stream()
+                .collect(Collectors.toMap(
+                        pe -> String.valueOf(pe.getDayNumber()) + "-" + String.valueOf(pe.getExerciseNumber()),
+                        pe -> pe
+                ));
+        return mapToReturn;
     }
 
     private void updatePlanExerciseFromDto(PlanExercise pe, PlanExerciseDto peDto){

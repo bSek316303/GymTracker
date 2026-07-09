@@ -11,6 +11,6 @@ import java.util.Optional;
 @Repository
 public interface PlanExerciseRepository extends JpaRepository<PlanExercise, Long> {
     List<PlanExercise> findByPlanIdOrderByExerciseNumberAsc(Long planId);
-    List<PlanExercise> findByPlanIdAndDayNumberOrderByDayNumberAscExerciseNumberAsc(Long planId, int dayNumber);
+    List<PlanExercise> findByPlanIdAndDayNumberOrderByDayNumberAsc(Long planId, int dayNumber);
     Optional<PlanExercise> findByPlanIdAndDayNumberAndExerciseNumber(Long planId, Integer dayNumber, Integer exerciseNumber);
 }

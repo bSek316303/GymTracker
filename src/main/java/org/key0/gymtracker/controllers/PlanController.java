@@ -226,7 +226,7 @@ public class PlanController {
 
             return "redirect:/plan";
         } catch (Exception e){
-            System.out.println(e.getMessage());
+            e.printStackTrace();
             return "error";
         }
     }
@@ -234,26 +234,38 @@ public class PlanController {
     private void updateSessionFromForm(Integer day, WorkoutPlanDto updatedPlanDto, HttpSession httpSession) {
         WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
-        if (currentSessionDto != null) {
-            planService.ensureExerciseList(currentSessionDto);
-            if (day != null) {
-                if (updatedPlanDto == null || updatedPlanDto.getPlanExerciseList() == null || updatedPlanDto.getPlanExerciseList().isEmpty()) {
-                    return;
-                }
+        if (currentSessionDto == null) return;
 
-                currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
+        planService.ensureExerciseList(currentSessionDto);
+        currentSessionDto.getPlanExerciseList().removeIf(ex -> ex == null);
 
-                if (updatedPlanDto.getPlanExerciseList() != null) {
+        if (day != null) {
+            currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
 
-                    List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
-                            .filter(ex -> ex != null)
-                            .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
-                            .filter(ex -> day.equals(ex.getDayNumber()))
-                            .toList();
+            if (updatedPlanDto != null && updatedPlanDto.getPlanExerciseList() != null) {
+                List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
+                        .filter(ex -> ex != null)
+                        .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
+                        .filter(ex -> day.equals(ex.getDayNumber()))
+                        .toList();
 
-                    currentSessionDto.getPlanExerciseList().addAll(validExercisesFromForm);
-                }
-            } else {
+                currentSessionDto.getPlanExerciseList().addAll(validExercisesFromForm);
+            }
+
+            boolean isDayEmpty = currentSessionDto.getPlanExerciseList().stream()
+                    .noneMatch(ex -> day.equals(ex.getDayNumber()));
+
+            if (isDayEmpty && currentSessionDto.getDaysPerWeek() > 1) {
+
+                currentSessionDto.setDaysPerWeek(currentSessionDto.getDaysPerWeek() - 1);
+
+                currentSessionDto.getPlanExerciseList().stream()
+                        .filter(ex -> ex.getDayNumber() > day)
+                        .forEach(ex -> ex.setDayNumber(ex.getDayNumber() - 1));
+            }
+
+        } else {
+            if (updatedPlanDto != null) {
                 currentSessionDto.setDaysPerWeek(updatedPlanDto.getDaysPerWeek());
                 if (updatedPlanDto.getPlanExerciseList() != null) {
                     List<PlanExerciseDto> cleanList = updatedPlanDto.getPlanExerciseList().stream()
@@ -262,15 +274,15 @@ public class PlanController {
                     currentSessionDto.setPlanExerciseList(new ArrayList<>(cleanList));
                 }
             }
-
-            // Czyszczenie na wypadek zmniejszenia liczby dni w konfiguratorze
-            currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
-            currentSessionDto.getPlanExerciseList().forEach(ex -> ex.setTrackingParameter(
-                    parseTrackingParameter(ex.getTrackingParameter()).name()
-            ));
-
-            httpSession.setAttribute("workoutPlanDto", currentSessionDto);
         }
+
+        currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
+
+        currentSessionDto.getPlanExerciseList().forEach(ex ->
+                ex.setTrackingParameter(parseTrackingParameter(ex.getTrackingParameter()).name())
+        );
+
+        httpSession.setAttribute("workoutPlanDto", currentSessionDto);
     }
 
     private TrackingParameter parseTrackingParameter(String trackingParameter) {
