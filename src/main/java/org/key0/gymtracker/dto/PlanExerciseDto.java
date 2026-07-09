@@ -20,6 +20,15 @@ public class PlanExerciseDto implements Serializable {
     private int dayNumber;
     private int exerciseNumber;
 
+    public PlanExerciseDto (PlanExercise pe){
+        this.exerciseName = pe.getExerciseName();
+        this.targetSets = pe.getTargetSets();
+        this.trackingParameter = pe.getTrackingParameter().name();
+        this.notes = pe.getNotes();
+        this.dayNumber = pe.getDayNumber();
+        this.exerciseNumber = pe.getExerciseNumber();
+    }
+
     public PlanExercise toPlanExerciseWithoutPlan(){
         TrackingParameter trackingParameterEnum = TrackingParameter.fromString(trackingParameter);
         PlanExercise planExercise = new PlanExercise();

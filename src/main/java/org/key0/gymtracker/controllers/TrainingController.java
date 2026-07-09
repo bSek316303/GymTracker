@@ -7,7 +7,7 @@ import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
 import org.key0.gymtracker.services.UserService;
-import org.key0.gymtracker.services.WorkoutService;
+import org.key0.gymtracker.services.PlanService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,7 @@ public class TrainingController {
     private final SetLogRepository setLogRepository;
     private final UserRepository userRepository;
     private final UserService userService;
-    private final WorkoutService workoutService;
+    private final PlanService planService;
 
     @GetMapping("/choose-training")
     public String chooseTraining(@AuthenticationPrincipal UserDetails userDetails, Model model){
@@ -69,7 +68,7 @@ public class TrainingController {
                                   Model model, HttpSession httpSession  ) {
         try{
             User user = userService.getUser(userDetails);
-            WorkoutPlan workoutPlan = workoutService.getWorkoutPlan(user);
+            WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
             Optional<Training> oTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan);
 
             if(oTraining.isEmpty()){
@@ -110,7 +109,7 @@ public class TrainingController {
             boolean isLastExercise = (exerciseNumber == exercisesFromPlan.size());
 
             if(weekNumber > 1){
-                List<SetLog> lastWeekResultsInExercise = workoutService.getSetLogsByWorkoutAndWeek(workoutPlan, weekNumber - 1, dayNumber, currentPlanExercise);
+                List<SetLog> lastWeekResultsInExercise = planService.getSetLogsByWorkoutAndWeek(workoutPlan, weekNumber - 1, dayNumber, currentPlanExercise);
                 model.addAttribute("historyExerciseResults", lastWeekResultsInExercise);
             } else model.addAttribute("historyExerciseResults", null);
 
@@ -138,7 +137,7 @@ public class TrainingController {
                                      HttpSession httpSession, Model model) {
         try {
             User user = userService.getUser(userDetails);
-            WorkoutPlan workoutPlan = workoutService.getWorkoutPlan(user);
+            WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
 
             Training training = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan)
                     .orElseThrow(() -> new RuntimeException("Nie znaleziono aktywnego treningu."));

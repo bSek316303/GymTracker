@@ -1,6 +1,7 @@
 package org.key0.gymtracker.controllers;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.AllArgsConstructor;
 import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.Weight;
@@ -9,6 +10,7 @@ import org.key0.gymtracker.repositories.PlanExerciseRepository;
 import org.key0.gymtracker.repositories.UserRepository;
 import org.key0.gymtracker.repositories.WeightRepository;
 import org.key0.gymtracker.repositories.WorkoutPlanRepository;
+import org.key0.gymtracker.services.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -21,19 +23,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
+@AllArgsConstructor
 public class HomeController {
 
     private final UserRepository userRepository;
     private final WeightRepository weightRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
-
-    public HomeController (UserRepository userRepository, WeightRepository weightRepository, WorkoutPlanRepository workoutPlanRepository, PlanExerciseRepository planExerciseRepository){
-        this.userRepository = userRepository;
-        this.weightRepository = weightRepository;
-        this.workoutPlanRepository = workoutPlanRepository;
-        this.planExerciseRepository = planExerciseRepository;
-    }
+    private final UserService userService;
 
     @GetMapping("/")
     public String home() {
@@ -45,8 +42,7 @@ public class HomeController {
 
     @GetMapping("/profile")
     public String profile(Model model, @AuthenticationPrincipal UserDetails currentUser) {
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
+        User user = userService.getUser(currentUser);
         List<Weight> weights = weightRepository.findByUserIdOrderByWeightDateAsc(user.getId());
         model.addAttribute("user", currentUser);
 
@@ -65,9 +61,7 @@ public class HomeController {
 
     @GetMapping("/plan")
     public String plan(Model model, @AuthenticationPrincipal UserDetails currentUser, RedirectAttributes redirectAttributes, HttpSession httpSession) {
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
-
+        User user = userService.getUser(currentUser);
         Optional<WorkoutPlan> oPlan = workoutPlanRepository.findByUserId(user.getId());
 
         if(oPlan.isEmpty()) {

@@ -12,9 +12,8 @@ import org.key0.gymtracker.models.WorkoutPlan;
 import org.key0.gymtracker.repositories.PlanExerciseRepository;
 import org.key0.gymtracker.repositories.UserRepository;
 import org.key0.gymtracker.repositories.WorkoutPlanRepository;
-import org.key0.gymtracker.services.PlanService;
 import org.key0.gymtracker.services.UserService;
-import org.key0.gymtracker.services.WorkoutService;
+import org.key0.gymtracker.services.PlanService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -33,71 +32,43 @@ public class PlanController {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
     private final UserService userService;
-    private final WorkoutService workoutService;
     private final PlanService planService;
 
     @PostMapping("/{day}")
     public String viewExercises(Model model, @AuthenticationPrincipal UserDetails currentUser, @PathVariable Integer day, HttpSession httpSession){
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
+        try {
+            User user = userService.getUser(currentUser);
+            WorkoutPlan plan = planService.getWorkoutPlan(user);
 
-        WorkoutPlan plan = workoutPlanRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono planu w bazie"));
+            model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId()).stream().
+                    filter(pe -> day.equals(pe.getDayNumber())));
 
-        model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId()).stream().
-                filter(pe -> day.equals(pe.getDayNumber())));
-
-        httpSession.setAttribute("currentDay", day);
+            httpSession.setAttribute("currentDay", day);
+        } catch (Exception e){
+            return "error";
+        }
         return "redirect:/plan";
     }
 
     @GetMapping("/plan-creator")
     public String planCreator(HttpSession httpSession, Model model, @AuthenticationPrincipal UserDetails currentUser) {
-        User user = userRepository.findByUsername(currentUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + currentUser.getUsername()));
+        try {
+            User user = userService.getUser(currentUser);
+            WorkoutPlan plan = planService.getOrCreateDefaultPlan(user);
 
-        WorkoutPlan plan = workoutPlanRepository.findByUserId(user.getId())
-                .orElseGet(() -> {
-                    WorkoutPlan newPlan = new WorkoutPlan();
-                    newPlan.setUser(user);
-                    newPlan.setDaysPerWeek(3);
-                    WorkoutPlan savedPlan = workoutPlanRepository.save(newPlan);
+            List<PlanExercise> planExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
+            WorkoutPlanDto workoutPlanDto = new WorkoutPlanDto();
+            workoutPlanDto.setDaysPerWeek(plan.getDaysPerWeek());
+            workoutPlanDto.setPlanExerciseList(new ArrayList<>());
+            planExercises.forEach(pe -> workoutPlanDto.getPlanExerciseList().add(new PlanExerciseDto(pe)));
 
-                    TrackingParameter defaultTrackingParameter = TrackingParameter.REPETITIONS;
-
-                    PlanExercise defaultExercise = new PlanExercise();
-                    defaultExercise.setPlan(savedPlan);
-                    defaultExercise.setExerciseName("Przykładowe ćwiczenie");
-                    defaultExercise.setTargetSets(3);
-                    defaultExercise.setTrackingParameter(defaultTrackingParameter);
-                    defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje odnośnie ćwiczenia");
-                    defaultExercise.setDayNumber(1);
-                    defaultExercise.setExerciseNumber(1);
-                    planExerciseRepository.save(defaultExercise);
-
-                    return savedPlan;
-                });
-
-        List<PlanExercise> planExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
-        WorkoutPlanDto workoutPlanDto = new WorkoutPlanDto();
-        workoutPlanDto.setDaysPerWeek(plan.getDaysPerWeek());
-        workoutPlanDto.setPlanExerciseList(new ArrayList<>());
-
-        for (PlanExercise pe : planExercises) {
-            workoutPlanDto.getPlanExerciseList().add(new PlanExerciseDto(
-                    pe.getExerciseName(),
-                    pe.getTargetSets(),
-                    pe.getTrackingParameter().name(),
-                    pe.getNotes(),
-                    pe.getDayNumber(),
-                    pe.getExerciseNumber()
-            ));
+            httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+            model.addAttribute("workoutPlanDto", workoutPlanDto);
+            model.addAttribute("currentDay", null);
+            model.addAttribute("trackingParameters", TrackingParameter.values());
+        } catch (Exception e){
+            return "error";
         }
-
-        httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
-        model.addAttribute("workoutPlanDto", workoutPlanDto);
-        model.addAttribute("currentDay", null);
-        model.addAttribute("trackingParameters", TrackingParameter.values());
 
         return "plan_creator";
     }
@@ -106,7 +77,7 @@ public class PlanController {
     public String planCreatorForDay(@PathVariable("day") int day, HttpSession httpSession, Model model) {
         WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
         if (workoutPlanDto == null) {
-            return "redirect:/plan/plan-creator";
+            return "redirect:/plan";
         }
 
         model.addAttribute("workoutPlanDto", workoutPlanDto);
@@ -132,23 +103,26 @@ public class PlanController {
     public String addExerciseToDay(@PathVariable("day") Integer day,
                                    @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
                                    HttpSession httpSession) {
-        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
+        try {
+            WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
-        updateSessionFromForm(day, updatedPlanDto, httpSession);
+            updateSessionFromForm(day, updatedPlanDto, httpSession);
 
-        if (workoutPlanDto != null) {
-            planService.ensureExerciseList(workoutPlanDto);
-            long exerciseCount = workoutPlanDto.getPlanExerciseList().stream()
-                    .filter(e -> e.getDayNumber() == day)
-                    .count();
+            if (workoutPlanDto != null) {
+                planService.ensureExerciseList(workoutPlanDto);
+                long exerciseCount = workoutPlanDto.getPlanExerciseList().stream()
+                        .filter(e -> e.getDayNumber() == day)
+                        .count();
 
-            workoutPlanDto.getPlanExerciseList().add(
-                    new PlanExerciseDto("", 3, "REPETITIONS",  "", day, (int) (exerciseCount + 1))
-            );
+                workoutPlanDto.getPlanExerciseList().add(
+                        new PlanExerciseDto("", 3, "REPETITIONS", "", day, (int) (exerciseCount + 1))
+                );
 
-            httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+                httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+            }
+        } catch (Exception e){
+            return "error";
         }
-
         return "redirect:/plan/plan-creator/" + day;
     }
 
@@ -160,7 +134,7 @@ public class PlanController {
 
         try {
             User user = userService.getUser(currentUser);
-            WorkoutPlan plan = workoutService.getWorkoutPlan(user);
+            WorkoutPlan plan = planService.getWorkoutPlan(user);
 
             plan.setDaysPerWeek(updatedPlanDto.getDaysPerWeek());
             workoutPlanRepository.save(plan);
@@ -224,7 +198,7 @@ public class PlanController {
             }
 
             User user = userService.getUser(currentUser);
-            WorkoutPlan plan = workoutService.getWorkoutPlan(user);
+            WorkoutPlan plan = planService.getWorkoutPlan(user);
 
             WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
             if (currentSessionDto == null) {
@@ -249,12 +223,12 @@ public class PlanController {
             planExerciseRepository.saveAll(newExercises);
 
             httpSession.removeAttribute("workoutPlanDto");
+
+            return "redirect:/plan";
         } catch (Exception e){
             System.out.println(e.getMessage());
             return "error";
         }
-
-        return "redirect:/plan";
     }
 
     private void updateSessionFromForm(Integer day, WorkoutPlanDto updatedPlanDto, HttpSession httpSession) {
