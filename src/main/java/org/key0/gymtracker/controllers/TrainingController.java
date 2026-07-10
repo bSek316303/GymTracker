@@ -6,6 +6,7 @@ import org.key0.gymtracker.dto.ExerciseResultDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
+import org.key0.gymtracker.services.TrainingService;
 import org.key0.gymtracker.services.UserService;
 import org.key0.gymtracker.services.PlanService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,14 +29,13 @@ public class TrainingController {
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
     private final SetLogRepository setLogRepository;
-    private final UserRepository userRepository;
     private final UserService userService;
     private final PlanService planService;
+    private final TrainingService trainingService;
 
     @GetMapping("/choose-training")
-    public String chooseTraining(@AuthenticationPrincipal UserDetails userDetails, Model model){
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + userDetails.getUsername()));
+    public String chooseTraining(@AuthenticationPrincipal UserDetails currentUser, Model model){
+        User user = userService.getUser(currentUser);
 
         Optional<WorkoutPlan> userPlan = workoutPlanRepository.findByUserId(user.getId());
 
@@ -53,11 +53,50 @@ public class TrainingController {
             model.addAttribute("weeksCount", 1);
             model.addAttribute("sessions", List.of());
         } else {
-            model.addAttribute("weeksCount", userTrainingSessions.getFirst().getTrainingWeek());
+            if(trainingService.isUsersTrainingWeekFinished(user, userTrainingSessions.getFirst().getTrainingWeek()))
+                model.addAttribute("weeksCount", userTrainingSessions.getFirst().getTrainingWeek() + 1);
+            else
+                model.addAttribute("weeksCount", userTrainingSessions.getFirst().getTrainingWeek());
+
             model.addAttribute("sessions", userTrainingSessions);
         }
 
         return "choose_training";
+    }
+    @PostMapping("/{week-number}/{day-number}/{old-exercise-number}/{new-exercise-number}")
+    public String changeExercise(@AuthenticationPrincipal UserDetails currentUser,
+                                 @ModelAttribute("currentExerciseDto") ExerciseResultDto currentExerciseDto,
+                                 @PathVariable("week-number") Integer weekNumber,
+                                 @PathVariable("day-number") Integer dayNumber,
+                                 @PathVariable("old-exercise-number") Integer oldExerciseNumber,
+                                 @PathVariable("new-exercise-number") Integer newExerciseNumber,
+                                 Model model, HttpSession httpSession  ) {
+        try{
+            User user = userService.getUser(currentUser);
+            WorkoutPlan plan = planService.getWorkoutPlan(user);
+
+            Optional<Training> currentTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, plan);
+            Optional<PlanExercise> currentExercise = planExerciseRepository.findByPlanIdAndDayNumberAndExerciseNumber(plan.getId(), dayNumber, oldExerciseNumber);
+            Optional<ExerciseResult> currentExerciseResult = exerciseResultRepository.findByTrainingAndExercise(currentTraining.get(), currentExercise.get());
+
+            if(currentExerciseResult.isEmpty()){
+                ExerciseResult newExerciseResult = new ExerciseResult();
+                newExerciseResult.setExercise(currentExercise.get());
+                newExerciseResult.setTraining(currentTraining.get());
+                exerciseResultRepository.save(newExerciseResult);
+
+                currentExerciseResult = Optional.of(newExerciseResult);
+            }
+
+            List<SetLog> setLogList = setLogRepository.findByExerciseResultOrderBySetNumberAsc(currentExerciseResult.get());
+
+            // TODO LOGIKA DODAWANIA LUB AKTUALIZACJI SET LOG NA PODSTAWIE SET LOG DTO, KTÓRE WYCIĄGAMY OD KLIENTA
+
+        } catch(Exception e){
+            return "error";
+        }
+
+        return "redirect:/" + weekNumber + "/" + dayNumber + "/" + newExerciseNumber;
     }
 
     @GetMapping("/{week-number}/{day-number}/{exercise-number}")

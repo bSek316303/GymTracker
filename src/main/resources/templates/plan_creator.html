@@ -59,7 +59,7 @@
                 <div class="day-selector">
                     <th:block th:each="i : ${#numbers.sequence(1, workoutPlanDto.daysPerWeek)}">
                         <button type="submit"
-                                th:formaction="@{/plan/plan-creator/{cDay}/switch-day/{tDay}(cDay=${currentDay != null ? currentDay : 1}, tDay=${i})}"
+                                th:formaction="@{/plan/plan-creator/{cDay}/switch-day/{tDay}(cDay=${currentDay != null ? currentDay : 8}, tDay=${i})}"
                                 th:text="'Dzień ' + ${i}"
                                 th:class="${i == currentDay} ? 'day-button-glow' : 'day-button'">
                         </button>

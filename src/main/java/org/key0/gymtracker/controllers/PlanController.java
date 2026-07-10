@@ -22,13 +22,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/plan")
 @AllArgsConstructor
 public class PlanController {
 
-    private final UserRepository userRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
     private final UserService userService;
@@ -91,17 +92,16 @@ public class PlanController {
     public String switchDayAndSave(
             @PathVariable("currentDay") int currentDay,
             @PathVariable("targetDay") int targetDay,
-            @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
-            HttpSession httpSession) {
-
-        updateSessionFromForm(currentDay, updatedPlanDto, httpSession);
-
+            @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+            HttpSession httpSession)
+    {
+        if(currentDay != 8) updateSessionFromForm(currentDay, updatedPlanDto, httpSession);
         return "redirect:/plan/plan-creator/" + targetDay;
     }
 
     @PostMapping("/plan-creator/{day}/add-exercise")
     public String addExerciseToDay(@PathVariable("day") Integer day,
-                                   @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
+                                   @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
                                    HttpSession httpSession) {
         try {
             WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
@@ -128,7 +128,7 @@ public class PlanController {
 
     @PostMapping(value = {"/plan-creator/change-days", "/plan-creator/{day}/change-days"})
     public String changeDays(@PathVariable(value = "day", required = false) Integer day,
-                             @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
+                             @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
                              HttpSession httpSession,
                              @AuthenticationPrincipal UserDetails currentUser) {
 
@@ -167,7 +167,7 @@ public class PlanController {
     @PostMapping("/plan-creator/remove-exercise/{day}/{exerciseNumber}")
     public String removeExerciseFromDay(@PathVariable("day") Integer day,
                                         @PathVariable("exerciseNumber") Integer exerciseNumber,
-                                        @ModelAttribute("formDto") WorkoutPlanDto updatedPlanDto,
+                                        @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
                                         HttpSession httpSession) {
         updateSessionFromForm(day, updatedPlanDto, httpSession);
 
@@ -237,14 +237,14 @@ public class PlanController {
         if (currentSessionDto == null) return;
 
         planService.ensureExerciseList(currentSessionDto);
-        currentSessionDto.getPlanExerciseList().removeIf(ex -> ex == null);
+        currentSessionDto.getPlanExerciseList().removeIf(Objects::isNull);
 
         if (day != null) {
-            currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
-
             if (updatedPlanDto != null && updatedPlanDto.getPlanExerciseList() != null) {
+                currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
+
                 List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
-                        .filter(ex -> ex != null)
+                        .filter(Objects::nonNull)
                         .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
                         .filter(ex -> day.equals(ex.getDayNumber()))
                         .toList();
@@ -263,25 +263,9 @@ public class PlanController {
                         .filter(ex -> ex.getDayNumber() > day)
                         .forEach(ex -> ex.setDayNumber(ex.getDayNumber() - 1));
             }
-
-        } else {
-            if (updatedPlanDto != null) {
-                currentSessionDto.setDaysPerWeek(updatedPlanDto.getDaysPerWeek());
-                if (updatedPlanDto.getPlanExerciseList() != null) {
-                    List<PlanExerciseDto> cleanList = updatedPlanDto.getPlanExerciseList().stream()
-                            .filter(ex -> ex != null && ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
-                            .toList();
-                    currentSessionDto.setPlanExerciseList(new ArrayList<>(cleanList));
-                }
-            }
         }
 
         currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
-
-        currentSessionDto.getPlanExerciseList().forEach(ex ->
-                ex.setTrackingParameter(parseTrackingParameter(ex.getTrackingParameter()).name())
-        );
-
         httpSession.setAttribute("workoutPlanDto", currentSessionDto);
     }
 
