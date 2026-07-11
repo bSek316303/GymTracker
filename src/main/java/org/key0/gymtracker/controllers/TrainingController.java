@@ -3,6 +3,7 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.key0.gymtracker.dto.ExerciseResultDto;
+import org.key0.gymtracker.dto.SetLogDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Controller
@@ -88,9 +90,27 @@ public class TrainingController {
                 currentExerciseResult = Optional.of(newExerciseResult);
             }
 
-            List<SetLog> setLogList = setLogRepository.findByExerciseResultOrderBySetNumberAsc(currentExerciseResult.get());
+            final ExerciseResult finalExerciseResult = currentExerciseResult.get();
 
-            // TODO LOGIKA DODAWANIA LUB AKTUALIZACJI SET LOG NA PODSTAWIE SET LOG DTO, KTÓRE WYCIĄGAMY OD KLIENTA
+            List<SetLog> setLogList = setLogRepository.findByExerciseResultOrderBySetNumberAsc(finalExerciseResult);
+
+            if(setLogList.isEmpty()) {
+                setLogList = currentExerciseDto.getSetLogs().stream().map(setLogDto -> {
+                    SetLog setLog = setLogDto.toSetLogWithoutParameter();
+                    setLog.setValueByParameter(setLogDto.getParameter(), finalExerciseResult.getExercise().getTrackingParameter());
+                    setLog.setExerciseResult(finalExerciseResult);
+                    return setLog;
+                }).toList();
+            } else {
+                setLogList = setLogList.stream().map(setLog -> {
+                    Optional<SetLogDto> setLogDto = currentExerciseDto.getSetLogs().stream().filter(setLogDtoArg -> Objects.equals(setLogDtoArg.getSetNumber(), setLog.getSetNumber())).findFirst();
+                    if(!setLogDto.get().isEmpty()){
+                        setLog.updateFromSetLogDto(setLogDto.get());
+                    }
+                    return setLog;
+                }).toList();
+            }
+            setLogRepository.saveAll(setLogList);
 
         } catch(Exception e){
             return "error";

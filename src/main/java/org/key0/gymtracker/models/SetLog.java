@@ -2,6 +2,7 @@ package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.key0.gymtracker.dto.SetLogDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 
 @Entity
@@ -68,5 +69,13 @@ public class SetLog {
                 this.calories = value;
             }
         }
+    }
+
+    public void updateFromSetLogDto(SetLogDto setLogDto){
+        this.setNumber = setLogDto.getSetNumber();
+        this.setValueByParameter(setLogDto.getParameter(), this.getExerciseResult().getExercise().getTrackingParameter());
+        this.weight = setLogDto.getWeight();
+        this.restTime = setLogDto.getRestTime();
+        this.rir = setLogDto.getRir();
     }
 }

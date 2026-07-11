@@ -23,4 +23,8 @@ public class SetLogDto {
         setLog.setRestTime(this.restTime);
         return setLog;
     }
+
+    public boolean isEmpty(){
+        return parameter == null || parameter.equals(0);
+    }
 }
