@@ -27,4 +27,12 @@ public class SetLogDto {
     public boolean isEmpty(){
         return parameter == null || parameter.equals(0);
     }
+
+    public SetLogDto(SetLog setLog){
+        this.setNumber = setLog.getSetNumber();
+        this.weight = setLog.getWeight();
+        this.parameter = setLog.getParameter();
+        this.rir = setLog.getRir();
+        this.restTime = setLog.getRestTime();
+    }
 }

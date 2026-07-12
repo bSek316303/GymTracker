@@ -42,8 +42,8 @@ public class SetLog {
     @JoinColumn(name = "exercise_result_id", nullable = false)
     private ExerciseResult exerciseResult;
 
-    public void setValueByParameter(Integer value, TrackingParameter parameter){
-        switch (parameter) {
+    public void setParameter(Integer value){
+        switch (this.exerciseResult.getExercise().getTrackingParameter()) {
             case TrackingParameter.REPETITIONS -> {
                 this.reps = value;
                 this.durationSeconds = null;
@@ -71,9 +71,19 @@ public class SetLog {
         }
     }
 
+    public Integer getParameter(){
+        switch (this.exerciseResult.getExercise().getTrackingParameter()) {
+            case TrackingParameter.REPETITIONS -> { return this.reps; }
+            case TrackingParameter.DISTANCE -> { return this.distanceMeters; }
+            case TrackingParameter.TIME -> { return this.durationSeconds; }
+            case TrackingParameter.CALORIES -> { return this.calories; }
+            default -> { return null; }
+        }
+    }
+
     public void updateFromSetLogDto(SetLogDto setLogDto){
         this.setNumber = setLogDto.getSetNumber();
-        this.setValueByParameter(setLogDto.getParameter(), this.getExerciseResult().getExercise().getTrackingParameter());
+        this.setParameter(setLogDto.getParameter());
         this.weight = setLogDto.getWeight();
         this.restTime = setLogDto.getRestTime();
         this.rir = setLogDto.getRir();

@@ -71,50 +71,15 @@ public class TrainingController {
                                  @PathVariable("new-exercise-number") Integer newExerciseNumber,
                                  Model model, HttpSession httpSession  ) {
         try{
-            User user = userService.getUser(currentUser);
-            WorkoutPlan plan = planService.getWorkoutPlan(user);
+            trainingService.saveExerciseResultDto(currentExerciseDto);
 
-            Optional<Training> currentTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, plan);
-            Optional<PlanExercise> currentExercise = planExerciseRepository.findByPlanIdAndDayNumberAndExerciseNumber(plan.getId(), dayNumber, oldExerciseNumber);
-            Optional<ExerciseResult> currentExerciseResult = exerciseResultRepository.findByTrainingAndExercise(currentTraining.get(), currentExercise.get());
-
-            if(currentExerciseResult.isEmpty()){
-                ExerciseResult newExerciseResult = new ExerciseResult();
-                newExerciseResult.setExercise(currentExercise.get());
-                newExerciseResult.setTraining(currentTraining.get());
-                exerciseResultRepository.save(newExerciseResult);
-
-                currentExerciseResult = Optional.of(newExerciseResult);
-            }
-
-            final ExerciseResult finalExerciseResult = currentExerciseResult.get();
-
-            List<SetLog> setLogList = setLogRepository.findByExerciseResultOrderBySetNumberAsc(finalExerciseResult);
-
-            if(setLogList.isEmpty()) {
-                setLogList = currentExerciseDto.getSetLogs().stream().map(setLogDto -> {
-                    SetLog setLog = setLogDto.toSetLogWithoutParameter();
-                    setLog.setValueByParameter(setLogDto.getParameter(), finalExerciseResult.getExercise().getTrackingParameter());
-                    setLog.setExerciseResult(finalExerciseResult);
-                    return setLog;
-                }).toList();
-            } else {
-                setLogList = setLogList.stream().map(setLog -> {
-                    Optional<SetLogDto> setLogDto = currentExerciseDto.getSetLogs().stream().filter(setLogDtoArg -> Objects.equals(setLogDtoArg.getSetNumber(), setLog.getSetNumber())).findFirst();
-                    if(!setLogDto.get().isEmpty()){
-                        setLog.updateFromSetLogDto(setLogDto.get());
-                    }
-                    return setLog;
-                }).toList();
-            }
-            setLogRepository.saveAll(setLogList);
-            httpSession.setAttribute("currentExerciseDto", currentExerciseDto);
-
+            Map<Integer, ExerciseResultDto> map = (Map<Integer, ExerciseResultDto>) httpSession.getAttribute("exerciseResultDtoMap");
+            map.put(oldExerciseNumber, currentExerciseDto);
         } catch(Exception e){
             return "error";
         }
 
-        return "redirect:/" + weekNumber + "/" + dayNumber + "/" + newExerciseNumber;
+        return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + newExerciseNumber;
     }
 
     @GetMapping("/{week-number}/{day-number}/{exercise-number}")
