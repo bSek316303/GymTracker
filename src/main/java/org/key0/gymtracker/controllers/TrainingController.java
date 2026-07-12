@@ -17,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequestMapping("/training")
@@ -111,6 +108,7 @@ public class TrainingController {
                 }).toList();
             }
             setLogRepository.saveAll(setLogList);
+            httpSession.setAttribute("currentExerciseDto", currentExerciseDto);
 
         } catch(Exception e){
             return "error";
@@ -120,76 +118,41 @@ public class TrainingController {
     }
 
     @GetMapping("/{week-number}/{day-number}/{exercise-number}")
-    public String trainingSession(@AuthenticationPrincipal UserDetails userDetails,
+    public String getExerciseInTraining(@AuthenticationPrincipal UserDetails userDetails,
                                   @PathVariable("week-number") Integer weekNumber,
                                   @PathVariable("day-number") Integer dayNumber,
                                   @PathVariable("exercise-number") Integer exerciseNumber,
                                   Model model, HttpSession httpSession  ) {
-        try{
-            User user = userService.getUser(userDetails);
-            WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
-            Optional<Training> oTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan);
+        try {
+            Map<Integer, ExerciseResultDto> exerciseResultDtoMap = (Map<Integer, ExerciseResultDto>)httpSession.getAttribute("exerciseResultDtoMap");
+            List<PlanExercise> planExerciseList = exerciseResultDtoMap.values().stream().map(ExerciseResultDto::getExercise).toList();
+            Map<Integer, ExerciseResult> historyExerciseResults = (Map<Integer, ExerciseResult>)httpSession.getAttribute("historyExerciseResultsMap");
+            ExerciseResult historyExerciseResult = historyExerciseResults.get(exerciseNumber);
 
-            if(oTraining.isEmpty()){
-                Training newTraining = new Training();
-                newTraining.setTrainingDate(java.time.LocalDate.now());
-                newTraining.setTrainingWeek(weekNumber);
-                newTraining.setDayNumber(dayNumber);
-                newTraining.setPlan(workoutPlan);
-                trainingRepository.save(newTraining);
-                oTraining = Optional.of(newTraining);
-            }
+            boolean isLastExercise = !exerciseResultDtoMap.containsKey(2);
 
-            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByDayNumberAsc(workoutPlan.getId(), dayNumber);
-
-            final Long trainingId = oTraining.get().getId();
-
-            List<ExerciseResultDto> exerciseResultDtos = (List<ExerciseResultDto>) httpSession.getAttribute("exerciseResultDtos");
-
-            if (exerciseResultDtos == null) {
-                exerciseResultDtos = new ArrayList<>();
-                var finalExerciseResultDtos = exerciseResultDtos;
-                exercisesFromPlan.forEach(planExercise ->
-                        finalExerciseResultDtos.add(new ExerciseResultDto(trainingId, planExercise.getTargetSets(), planExercise))
-                );
-                httpSession.setAttribute("exerciseResultDtos", finalExerciseResultDtos);
-            }
-
-            PlanExercise currentPlanExercise = exercisesFromPlan.stream()
-                    .filter(ex -> ex.getExerciseNumber() == exerciseNumber)
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia o numerze: " + exerciseNumber));
-
-            int exerciseIndex = exercisesFromPlan.indexOf(currentPlanExercise);
-            ExerciseResultDto currentExerciseResultDto = exerciseResultDtos.get(exerciseIndex);
-
-            httpSession.setAttribute("lastViewedExerciseNumber", exerciseNumber);
-
-            boolean isLastExercise = (exerciseNumber == exercisesFromPlan.size());
-
-            if(weekNumber > 1){
-                List<SetLog> lastWeekResultsInExercise = planService.getSetLogsByWorkoutAndWeek(workoutPlan, weekNumber - 1, dayNumber, currentPlanExercise);
-                model.addAttribute("historyExerciseResults", lastWeekResultsInExercise);
-            } else model.addAttribute("historyExerciseResults", null);
-
-            model.addAttribute("parameter", currentPlanExercise.getTrackingParameter().toString());
-            model.addAttribute("planExerciseList", exercisesFromPlan);
-            model.addAttribute("currentExerciseResult", currentExerciseResultDto);
-            model.addAttribute("isLastExercise", isLastExercise);
-            model.addAttribute("currentExerciseNumber", exerciseNumber);
+            // Informacje dotyczące liczb
             model.addAttribute("weekNumber", weekNumber);
             model.addAttribute("dayNumber", dayNumber);
+            model.addAttribute("currentExerciseNumber", exerciseNumber);
+            model.addAttribute("isLastExercise", isLastExercise);
+            model.addAttribute("parameter", exerciseResultDtoMap.get(exerciseNumber).getExercise().getTrackingParameter().toString());
 
-            return "training";
-        } catch(RuntimeException e){
-            model.addAttribute("error", e.getMessage());
+            // Informacje dotyczące złożonych obiektów
+            model.addAttribute("currentExerciseDto", exerciseResultDtoMap.get(exerciseNumber));
+            model.addAttribute("planExerciseList", planExerciseList);
+            model.addAttribute("historyExerciseResult", historyExerciseResult);
+
+
+        } catch(Exception e){
+            return "error";
         }
-        return "error";
+        return "training";
     }
 
     @PostMapping("/{week-number}/{day-number}/{target-exercise-number}")
     @Transactional
-    public String saveExerciseResult(@AuthenticationPrincipal UserDetails userDetails,
+    public String prepareTraining(@AuthenticationPrincipal UserDetails userDetails,
                                      @PathVariable("week-number") Integer weekNumber,
                                      @PathVariable("day-number") Integer dayNumber,
                                      @PathVariable("target-exercise-number") Integer targetExerciseNumber,
@@ -197,59 +160,18 @@ public class TrainingController {
         try {
             User user = userService.getUser(userDetails);
             WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
+            Training training = trainingService.getOrCreateTraining(weekNumber, dayNumber, workoutPlan); // Możemy albo rozpocząć nowy trening albo wrócić do starego.
+            trainingService.prepareTraining(training);
+            Map<Integer, ExerciseResultDto> exerciseResultDtoMap = trainingService.getExerciseResultDtoMap(training);
 
-            Training training = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan)
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono aktywnego treningu."));
-
-            List<PlanExercise> exercisesFromPlan = planExerciseRepository.findByPlanIdAndDayNumberOrderByDayNumberAsc(workoutPlan.getId(), dayNumber);
-
-            final Integer sourceExerciseNumber = (Integer) httpSession.getAttribute("lastViewedExerciseNumber");
-
-            PlanExercise sourcePlanExercise = exercisesFromPlan.stream()
-                    .filter(ex ->  sourceExerciseNumber.equals(ex.getExerciseNumber()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono bazowego ćwiczenia o numerze: " + sourceExerciseNumber));
-
-            ExerciseResult exerciseResult = exerciseResultRepository.findByTrainingAndExercise(training, sourcePlanExercise)
-                    .orElse(new ExerciseResult());
-
-            exerciseResult.setTraining(training);
-            exerciseResult.setExercise(sourcePlanExercise);
-            ExerciseResult savedResult = exerciseResultRepository.save(exerciseResult);
-
-            // Jeśli to była aktualizacja istniejącego ćwiczenia, czyścimy stare serie z bazy przed zapisem nowych
-            if (exerciseResult.getId() != null) {
-                setLogRepository.deleteByExerciseResult(savedResult);
+            Map<Integer, ExerciseResult> historyExerciseResults = null;
+            if(weekNumber > 1) {
+                Training lastWeekTraining = trainingService.getTraining(weekNumber - 1, dayNumber, workoutPlan);
+                historyExerciseResults = trainingService.getExerciseResultMap(lastWeekTraining);
             }
 
-            List<ExerciseResultDto> exerciseResultDtos = (List<ExerciseResultDto>)httpSession.getAttribute("exerciseResultDtos");
-
-            ExerciseResultDto exerciseResultDto = exerciseResultDtos.stream()
-                    .filter(dto -> sourceExerciseNumber.equals(dto.getExercise().getExerciseNumber()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Nie znaleziono danych sesyjnych dla ćwiczenia o numerze: " + sourceExerciseNumber));
-
-            List<SetLog> logsToSave = new ArrayList<>();
-            exerciseResultDto.getSetLogs().forEach(setLogDto -> {
-                SetLog setLog = setLogDto.toSetLogWithoutParameter();
-                TrackingParameter parameter = exerciseResultDto.getExercise().getTrackingParameter();
-                setLog.setValueByParameter(setLogDto.getParameter(), parameter);
-                setLog.setExerciseResult(savedResult);
-                logsToSave.add(setLog);
-            });
-            setLogRepository.saveAll(logsToSave);
-
-            int sourceIndex = exercisesFromPlan.indexOf(sourcePlanExercise);
-            exerciseResultDtos.set(sourceIndex, exerciseResultDto);
-            httpSession.setAttribute("exerciseResultDtos", exerciseResultDtos);
-
-            boolean isOutOfBounds = (targetExerciseNumber > exercisesFromPlan.size());
-            boolean isLastExerciseButtonNormalClick = (sourceExerciseNumber == exercisesFromPlan.size() && targetExerciseNumber.equals(sourceExerciseNumber));
-            if (isOutOfBounds || isLastExerciseButtonNormalClick) {
-                httpSession.removeAttribute("exerciseResultDtos");
-                httpSession.removeAttribute("lastViewedExerciseNumber");
-                return "redirect:/";
-            }
+            httpSession.setAttribute("exerciseResultDtoMap", exerciseResultDtoMap);
+            httpSession.setAttribute("historyExerciseResultsMap", historyExerciseResults);
 
             return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
 

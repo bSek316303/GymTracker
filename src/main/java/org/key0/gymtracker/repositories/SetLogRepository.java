@@ -9,4 +9,5 @@ import java.util.List;
 public interface SetLogRepository extends JpaRepository<SetLog, Long> {
     public List<SetLog> findByExerciseResultOrderBySetNumberAsc(ExerciseResult exerciseResult);
     public void deleteByExerciseResult(ExerciseResult exerciseResult);
+    public List<SetLog> findByExerciseResultIn(List<ExerciseResult> exerciseResultList);
 }

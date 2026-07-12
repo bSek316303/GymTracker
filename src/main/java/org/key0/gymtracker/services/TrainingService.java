@@ -1,19 +1,30 @@
 package org.key0.gymtracker.services;
 
 import lombok.AllArgsConstructor;
-import org.key0.gymtracker.models.Training;
-import org.key0.gymtracker.models.User;
-import org.key0.gymtracker.models.WorkoutPlan;
+import org.hibernate.jdbc.Work;
+import org.key0.gymtracker.dto.ExerciseResultDto;
+import org.key0.gymtracker.models.*;
+import org.key0.gymtracker.repositories.ExerciseResultRepository;
+import org.key0.gymtracker.repositories.PlanExerciseRepository;
+import org.key0.gymtracker.repositories.SetLogRepository;
 import org.key0.gymtracker.repositories.TrainingRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class TrainingService {
     private final PlanService planService;
     private final TrainingRepository trainingRepository;
+    private final PlanExerciseRepository planExerciseRepository;
+    private final ExerciseResultRepository exerciseResultRepository;
+    private final SetLogRepository setLogRepository;
 
     public boolean isUsersTrainingWeekFinished(User user, Integer trainingWeek){
         WorkoutPlan plan = planService.getWorkoutPlan(user);
@@ -23,5 +34,87 @@ public class TrainingService {
         if(userSessions.getFirst().getTrainingWeek() > trainingWeek) return true;
 
         return userSessions.stream().filter(training -> trainingWeek.equals(training.getTrainingWeek())).count() == plan.getDaysPerWeek();
+    }
+
+    public Training getTraining(int weekNumber, int dayNumber, WorkoutPlan workoutPlan){
+        return trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono aktywnego treningu."));
+    }
+
+    public Training getOrCreateTraining(int weekNumber, int dayNumber, WorkoutPlan workoutPlan){
+        Optional<Training> oTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(weekNumber, dayNumber, workoutPlan);
+
+        // W przypadku rozpoczęcia nowego treningu przygotowujemy entity Training.
+        if(oTraining.isEmpty()){
+            Training newTraining = new Training();
+            newTraining.setTrainingDate(java.time.LocalDate.now());
+            newTraining.setTrainingWeek(weekNumber);
+            newTraining.setDayNumber(dayNumber);
+            newTraining.setPlan(workoutPlan);
+            trainingRepository.save(newTraining);
+            oTraining = Optional.of(newTraining);
+        }
+
+        return oTraining.get();
+    }
+
+    @Transactional
+    public void prepareTraining(Training training){
+        // Metoda ma przygotować wszystkie ExerciseResult oraz SetLogi do nowego lub skończonego treningu do którego użytkownik wrócił
+        // Edge case -> użytkownik skończył trening zwiekszył ilość serii, a następnie wrocił do starego treningu.
+        // Przy zmniejszeniu ilości serii program automatycznie usuwa nadmierne set logi więc to nie edge case.
+        WorkoutPlan workoutPlan = training.getPlan();
+
+        List<PlanExercise> planExerciseList = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), training.getDayNumber());
+        List<ExerciseResult> exerciseResultList = exerciseResultRepository.findByTraining(training);
+        List<SetLog> setLogList = setLogRepository.findByExerciseResultIn(exerciseResultList);
+
+        for (PlanExercise planEx : planExerciseList) {
+            ExerciseResult result = exerciseResultList.stream()
+                    .filter(er -> er.getExercise().equals(planEx))
+                    .findFirst()
+                    .orElseGet(() -> new ExerciseResult(training, planEx));
+
+            List<SetLog> logsForExercise = setLogList.stream()
+                    .filter(sl -> sl.getExerciseResult().equals(result))
+                    .toList();
+
+            int currentSetCount = logsForExercise.size();
+            int targetSets = planEx.getTargetSets();
+
+            if (currentSetCount < targetSets) {
+                List<Integer> existingSetNumbers = logsForExercise.stream()
+                        .map(SetLog::getSetNumber)
+                        .toList();
+
+                for (int i = 1; i <= targetSets; i++) {
+                    if (!existingSetNumbers.contains(i)) {
+                        SetLog newLog = new SetLog();
+                        newLog.setExerciseResult(result);
+                        newLog.setSetNumber(i);
+                        setLogRepository.save(newLog);
+                    }
+                }
+            }
+        }
+    }
+
+    public Map<Integer, ExerciseResultDto> getExerciseResultDtoMap(Training training){
+        // Metoda zakłada, że trening jest już przygotowany i nie ma braków.
+        WorkoutPlan workoutPlan = training.getPlan();
+        List<PlanExercise> planExerciseList = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), training.getDayNumber());
+        List<ExerciseResult> exerciseResultList = exerciseResultRepository.findByTraining(training);
+
+        return planExerciseList.stream()
+                .map(ex -> new ExerciseResultDto(training.getId(), planExerciseList.size(), ex))
+                .collect(Collectors.toMap(exDto -> exDto.getExercise().getExerciseNumber(), exDto -> exDto));
+    }
+
+    public Map<Integer, ExerciseResult> getExerciseResultMap(Training training){
+        WorkoutPlan workoutPlan = training.getPlan();
+        List<ExerciseResult> exerciseResultList = exerciseResultRepository.findByTraining(training);
+
+        return exerciseResultList.stream()
+                .collect(Collectors.toMap(exDto -> exDto.getExercise().getExerciseNumber(), exDto -> exDto));
     }
 }

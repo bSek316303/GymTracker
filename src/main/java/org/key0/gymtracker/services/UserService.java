@@ -34,8 +34,7 @@ public class UserService {
     }
 
     public User getUser(UserDetails userDetails){
-        User user = userRepository.findByUsername(userDetails.getUsername())
+        return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + userDetails.getUsername()));
-        return user;
     }
 }

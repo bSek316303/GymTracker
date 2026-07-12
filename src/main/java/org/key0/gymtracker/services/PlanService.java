@@ -22,9 +22,8 @@ public class PlanService {
     private final SetLogRepository setLogRepository;
 
     public WorkoutPlan getWorkoutPlan(User user){
-        WorkoutPlan workoutPlan = workoutPlanRepository.findByUserId(user.getId())
+        return workoutPlanRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono planu treningowego dla użytkownika: " + user.getUsername()));
-        return workoutPlan;
     }
 
     public Training getTrainingByWeekAndWorkout(WorkoutPlan plan, Integer week, Integer day){

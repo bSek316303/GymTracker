@@ -2,10 +2,12 @@ package org.key0.gymtracker.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name="exercise_results")
 @Data
+@NoArgsConstructor
 public class ExerciseResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,4 +21,9 @@ public class ExerciseResult {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private PlanExercise exercise;
+
+    public ExerciseResult(Training training, PlanExercise exercise){
+        this.training = training;
+        this.exercise = exercise;
+    }
 }
