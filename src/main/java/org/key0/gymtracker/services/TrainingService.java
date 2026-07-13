@@ -109,29 +109,25 @@ public class TrainingService {
         WorkoutPlan workoutPlan = training.getPlan();
         List<PlanExercise> planExerciseList = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), training.getDayNumber());
 
-        // 1. Pobieramy wszystkie rezultaty i wszystkie logi jednym zapytaniem
         List<ExerciseResult> exerciseResultList = exerciseResultRepository.findByTraining(training);
         List<SetLog> allLogs = setLogRepository.findByExerciseResultIn(exerciseResultList);
 
         return planExerciseList.stream().map(ex -> {
-            // 2. Tworzymy puste DTO
             ExerciseResultDto dto = new ExerciseResultDto(training, planExerciseList.size(), ex);
 
-            // 3. Znajdujemy encję ExerciseResult dla tego ćwiczenia
+            //ExerciseResults były przogotowane w prepare training stąd możemy twierdzić, że wszystkie setLogi są aktuale i ewentualnie niewypełnione
             ExerciseResult er = exerciseResultList.stream()
                     .filter(result -> result.getExercise().equals(ex))
                     .findFirst()
                     .orElse(null);
 
             if (er != null) {
-                // 4. Wyciągamy logi dla tego rezultatu, mapujemy na DTO i sortujemy
                 List<SetLogDto> logDtos = allLogs.stream()
                         .filter(log -> log.getExerciseResult().equals(er))
-                        .map(log -> new SetLogDto(log)) // Zakładam, że masz konstruktor SetLogDto(SetLog log)
+                        .map(log -> new SetLogDto(log))
                         .sorted(Comparator.comparingInt(SetLogDto::getSetNumber))
                         .collect(Collectors.toList());
 
-                // 5. Wkładamy gotowe serie do DTO
                 dto.setSetLogs(logDtos);
             }
 
@@ -161,7 +157,7 @@ public class TrainingService {
             SetLog entity = setLogList.get(i);
             SetLogDto dto = setLogDtoList.get(i);
 
-            entity.setValueByParameter(dto.getParameter(), exerciseResultDto.getExercise().getTrackingParameter());
+            entity.setParameter(dto.getParameter());
             entity.setWeight(dto.getWeight());
             entity.setRir(dto.getRir());
             entity.setRestTime(dto.getRestTime());

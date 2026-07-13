@@ -24,9 +24,7 @@ import java.util.*;
 @AllArgsConstructor
 public class TrainingController {
     private final TrainingRepository trainingRepository;
-    private final ExerciseResultRepository exerciseResultRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
-    private final PlanExerciseRepository planExerciseRepository;
     private final SetLogRepository setLogRepository;
     private final UserService userService;
     private final PlanService planService;
@@ -40,7 +38,7 @@ public class TrainingController {
 
         if(userPlan.isEmpty()){
             model.addAttribute("emptyPlan", true);
-            return "choose-training";
+            return "redirect:/plan";
         }
 
         model.addAttribute("emptyPlan", false);
@@ -91,12 +89,19 @@ public class TrainingController {
         try {
             Map<Integer, ExerciseResultDto> exerciseResultDtoMap = (Map<Integer, ExerciseResultDto>)httpSession.getAttribute("exerciseResultDtoMap");
             List<PlanExercise> planExerciseList = exerciseResultDtoMap.values().stream().map(ExerciseResultDto::getExercise).toList();
-            Map<Integer, ExerciseResult> historyExerciseResults = (Map<Integer, ExerciseResult>)httpSession.getAttribute("historyExerciseResultsMap");
-            ExerciseResult historyExerciseResult = historyExerciseResults.get(exerciseNumber);
+            Map<Integer, ExerciseResult> historyExerciseResults = null;
+            ExerciseResult historyExerciseResult = null;
+            List<SetLog> historySetLogs = null;
+
+            if(weekNumber > 1) {
+                historyExerciseResults = (Map<Integer, ExerciseResult>)httpSession.getAttribute("historyExerciseResultsMap");
+                historyExerciseResult = historyExerciseResults.get(exerciseNumber);
+                historySetLogs = setLogRepository.findByExerciseResultId(historyExerciseResult.getId());
+            }
 
             boolean isLastExercise = !exerciseResultDtoMap.containsKey(2);
 
-            // Informacje dotyczące liczb
+            // Informacje dotyczące prostych parametrów
             model.addAttribute("weekNumber", weekNumber);
             model.addAttribute("dayNumber", dayNumber);
             model.addAttribute("currentExerciseNumber", exerciseNumber);
@@ -107,6 +112,7 @@ public class TrainingController {
             model.addAttribute("currentExerciseDto", exerciseResultDtoMap.get(exerciseNumber));
             model.addAttribute("planExerciseList", planExerciseList);
             model.addAttribute("historyExerciseResult", historyExerciseResult);
+            model.addAttribute("historySetLogs", historySetLogs);
 
 
         } catch(Exception e){
@@ -141,6 +147,9 @@ public class TrainingController {
             return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
 
         } catch(Exception e) {
+            System.err.println("BŁĄD W PREPARE TRAINING: " + e.getMessage());
+            e.printStackTrace();
+
             model.addAttribute("error", e.getMessage());
         }
         return "error";

@@ -26,9 +26,9 @@
         </div>
 
         <form th:action="@{/training/{week}/{day}/{ex}(week=${weekNumber}, day=${dayNumber}, ex=${currentExerciseNumber + 1})}"
-              th:method="post" th:object="${currentExerciseResult}" class="exercise-container">
+              th:method="post" th:object="${currentExerciseDto}" class="exercise-container">
 
-            <input type="hidden" th:field="*{trainingId}" />
+            <input type="hidden" th:field="*{training.Id}" />
 
             <div class="custom-dropdown">
                 <div class="dropdown-trigger" id="dropdownTrigger">
@@ -106,10 +106,10 @@
                 </div>
             </div>
 
-            <div th:if="${historyExerciseResults != null and !#lists.isEmpty(historyExerciseResults)}" class="history-wrapper">
+            <div th:if="${historyExerciseResult != null}" class="history-wrapper">
                 <h3 class="history-title">Parametry z poprzedniego tygodnia</h3>
 
-                <div th:each="setLog, stat : ${historyExerciseResults}" class="set-card history-card">
+                <div th:each="setLog, stat : ${historySetLogs}" class="set-card history-card">
                     <h4 class="set-title">Seria <span th:text="${stat.count}">1</span></h4>
                     <table class="set-table">
                         <thead>

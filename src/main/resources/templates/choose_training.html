@@ -25,13 +25,19 @@
                             <div th:if="${!completedSession.isEmpty()}" class="day-info">
                                 <span class="status-icon">✓</span>
                                 <span th:text="'Dzień ' + ${dayNum} + ' (Ukończono: ' + ${completedSession[0].trainingDate} + ')'"></span>
-                                <a th:href="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
+                                
+                                <form th:action="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" method="post">
+                                    <button type="submit" class="btn-primary">Rozpocznij trening</button>
+                                </form>
                             </div>
 
                             <div th:if="${completedSession.isEmpty()}" class="day-info">
                                 <span class="status-icon">○</span>
                                 <span th:text="'Dzień ' + ${dayNum}"></span>
-                                <a th:href="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" class="btn-primary">Rozpocznij trening</a>
+
+                                <form th:action="@{/training/{week-number}/{day-number}/1(week-number=${currentWeek}, day-number=${dayNum})}" method="post">
+                                    <button type="submit" class="btn-primary">Rozpocznij trening</button>
+                                </form>
                             </div>
 
                         </div>
