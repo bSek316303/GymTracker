@@ -66,11 +66,12 @@ public class HomeController {
 
         if(oPlan.isEmpty()) {
             redirectAttributes.addFlashAttribute("warningMessage", "Nie znaleziono planu treningowego dla użytkownika");
-            return "plan";
-        }
+            model.addAttribute("plan", null);
 
-        WorkoutPlan plan = oPlan.get();
-        model.addAttribute("plan", plan);
+            return "plan";
+        } else {
+            model.addAttribute("plan", oPlan.get());
+        }
 
         Integer currDay = (Integer) httpSession.getAttribute("currentDay");
         if (currDay == null) {
@@ -81,10 +82,13 @@ public class HomeController {
 
         final Integer currentDay = currDay;
 
-        List<PlanExercise> filteredExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId())
-                .stream()
-                .filter(pe -> currentDay.equals(pe.getDayNumber()))
-                .toList();
+        List<PlanExercise> filteredExercises = null;
+        if(oPlan.isPresent()) {
+            filteredExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(oPlan.get().getId())
+                    .stream()
+                    .filter(pe -> currentDay.equals(pe.getDayNumber()))
+                    .toList();
+        }
 
         model.addAttribute("exercises", filteredExercises);
 

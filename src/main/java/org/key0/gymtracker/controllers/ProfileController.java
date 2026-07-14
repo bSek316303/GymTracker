@@ -1,5 +1,6 @@
 package org.key0.gymtracker.controllers;
 
+import lombok.AllArgsConstructor;
 import org.key0.gymtracker.models.BodyMeasurement;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.Weight;
@@ -17,16 +18,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/profile")
+@AllArgsConstructor
 public class ProfileController {
     private final UserService userService;
     private final WeightService weightService;
     private final BodyMeasurementService bodyMeasurementService;
-
-    public ProfileController(UserService userService, WeightService weightService, BodyMeasurementService bodyMeasurementService) {
-        this.userService = userService;
-        this.weightService = weightService;
-        this.bodyMeasurementService = bodyMeasurementService;
-    }
 
     @PostMapping("/update-weight")
     public String updateWeight(@AuthenticationPrincipal UserDetails currentUser, Double weightValue, RedirectAttributes redirectAttributes) {

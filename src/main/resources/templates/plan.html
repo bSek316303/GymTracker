@@ -13,7 +13,7 @@
         <a type="button" class="btn-link margin-bottom-md" href='/plan/plan-creator'>Edytuj swój plan</a>
 
         <form method="post">
-            <div class="day-selector">
+            <div th:if="plan != null" class="day-selector">
                 <th:block th:each="i : ${#numbers.sequence(1, plan.daysPerWeek)}">
                     <button type="submit"
                             th:formaction="@{/plan/{day}(day=${i})}"

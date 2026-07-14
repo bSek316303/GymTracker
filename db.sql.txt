@@ -41,7 +41,7 @@ CREATE TABLE workout_plans (
 
 CREATE TABLE plan_exercises (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    exercise_name VARCHAR(64) NOT NULL,
+    exercise_name VARCHAR(255) NOT NULL,
     target_sets INT NOT NULL,
     tracking_parameter ENUM('REPETITIONS',  'TIME', 'DISTANCE', 'CALORIES') NOT NULL,
     notes VARCHAR(255) NULL,
@@ -79,7 +79,7 @@ CREATE TABLE set_logs (
     weight DECIMAL(5,2) NULL,
     reps INT NULL,
     duration_seconds INT NULL,
-    distance_meters DECIMAL(7,2) NULL,
+    distance_meters INT NULL,
     calories INT NULL,
 
     rir INT NULL,
