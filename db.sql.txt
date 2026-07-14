@@ -1,12 +1,10 @@
--- 1. Tabela Użytkowników (Podstawa, do której przypisujemy resztę danych)
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(32) NOT NULL UNIQUE,
     email VARCHAR(64) NOT NULL UNIQUE,
-    password VARCHAR(80) NOT NULL,
+    password VARCHAR(80) NOT NULL
 );
 
--- 2. Tabela Historii Wag (Relacja Wiele-do-Jednego z users)
 CREATE TABLE weights (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     weight_date DATE NOT NULL,
@@ -16,7 +14,6 @@ CREATE TABLE weights (
     CONSTRAINT fk_weights_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- 3. Tabela Wymiarów Ciała (Relacja Wiele-do-Jednego z users)
 CREATE TABLE body_measurements (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     measurement_date DATE NOT NULL,
@@ -36,7 +33,9 @@ CREATE TABLE workout_plans (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     plan_name VARCHAR(32) NOT NULL,
     days_per_week INT NOT NULL,
+    last_edit_date DATE NOT NULL,
     user_id BIGINT NOT NULL,
+
     CONSTRAINT fk_plans_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -44,15 +43,14 @@ CREATE TABLE plan_exercises (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     exercise_name VARCHAR(64) NOT NULL,
     target_sets INT NOT NULL,
+    tracking_parameter ENUM('REPETITIONS',  'TIME', 'DISTANCE', 'CALORIES') NOT NULL,
     notes VARCHAR(255) NULL,
     day_number INT NOT NULL,
     exercise_number INT NOT NULL,
     plan_id BIGINT NOT NULL,
+
     CONSTRAINT fk_exercises_plan FOREIGN KEY (plan_id) REFERENCES workout_plans(id) ON DELETE CASCADE
 );
-
-ALTER TABLE plan_exercise
-ADD COLUMN tracking_parameter ENUM('REPETITIONS',  'TIME', 'DISTANCE', 'CALORIES') NOT NULL;
 
 CREATE TABLE trainings (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -69,7 +67,7 @@ create table exercise_results (
     training_id BIGINT,
     exercise_id BIGINT,
 
-    CONSTRAINT fk_exercise_results_trainings FOREIGN KEY (training_id) REFERENCES trainings(id) ON DELETE CASCADE
+    CONSTRAINT fk_exercise_results_trainings FOREIGN KEY (training_id) REFERENCES trainings(id) ON DELETE CASCADE,
     CONSTRAINT fk_exercise_results_exercise FOREIGN KEY (exercise_id) REFERENCES plan_exercises(id) ON DELETE CASCADE
 );
 
