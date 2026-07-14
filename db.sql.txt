@@ -70,7 +70,7 @@ create table exercise_results (
     exercise_id BIGINT,
 
     CONSTRAINT fk_exercise_results_trainings FOREIGN KEY (training_id) REFERENCES trainings(id) ON DELETE CASCADE
-    CONSTRAINT fk_exercise_results_exercise FOREIGN KEY (exercise_id) REFERENCES exercise_id(id) ON DELETE CASCADE
+    CONSTRAINT fk_exercise_results_exercise FOREIGN KEY (exercise_id) REFERENCES plan_exercises(id) ON DELETE CASCADE
 );
 
 CREATE TABLE set_logs (

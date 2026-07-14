@@ -20,10 +20,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Controller
 @RequestMapping("/plan")
@@ -39,10 +36,14 @@ public class PlanController {
     public String viewExercises(Model model, @AuthenticationPrincipal UserDetails currentUser, @PathVariable Integer day, HttpSession httpSession){
         try {
             User user = userService.getUser(currentUser);
-            WorkoutPlan plan = planService.getWorkoutPlan(user);
+            Optional<WorkoutPlan> optionalWorkoutPlan = workoutPlanRepository.findByUserId(user.getId());
 
-            model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId()).stream().
-                    filter(pe -> day.equals(pe.getDayNumber())));
+            if(optionalWorkoutPlan.isEmpty()) model.addAttribute("workoutPlan", null);
+            else {
+                model.addAttribute(optionalWorkoutPlan.get());
+                model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(optionalWorkoutPlan.get().getId()).stream().
+                        filter(pe -> day.equals(pe.getDayNumber())));
+            }
 
             httpSession.setAttribute("currentDay", day);
         } catch (Exception e){

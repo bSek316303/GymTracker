@@ -24,7 +24,7 @@
             </div>
         </form>
 
-        <div class="exercises-container">
+        <div th:if="workoutPlan != null" class="exercises-container">
             <div th:each="exercise : ${exercises}" class="exercise-card">
                 <div class="exercise-header">
                     <i class="bi bi-activity exercise-icon"></i>
@@ -47,11 +47,14 @@
                     </div>
                 </div>
 
-                <div th:if="${exercise.Notes != null && !exercise.Notes.isEmpty()}" class="exercise-notes">
+                <div th:if="${exercise.notes != null && !exercise.notes.isEmpty()}" class="exercise-notes">
                     <i class="bi bi-sticky"></i>
-                    <p th:text="${exercise.Notes}">Tutaj pojawią się notatki do ćwiczenia...</p>
+                    <p th:text="${exercise.notes}">Tutaj pojawią się notatki do ćwiczenia...</p>
                 </div>
             </div>
+        </div>
+        <div th:if="workoutPlan == null">
+            <h2>Nie utworzyłeś jeszcze swojego planu treningowego. Utwórz go klikając przycisk utwórz plan treningowy!</h2>
         </div>
     </main>
 
