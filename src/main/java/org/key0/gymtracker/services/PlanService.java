@@ -152,7 +152,7 @@ public class PlanService {
     }
 
     @Transactional
-    public void swapDayNumbers(int day, int firstNumber, int secondNumber, User user){
+    public void swapExerciseNumbers(int day, int firstNumber, int secondNumber, User user){
         Map<String, PlanExercise> planExerciseMap = getPlanExercisesMap(user);
 
         PlanExercise firstPe = planExerciseMap.get(String.valueOf(day) + "-" + String.valueOf(firstNumber));

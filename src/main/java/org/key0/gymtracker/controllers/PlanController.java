@@ -10,13 +10,13 @@ import org.key0.gymtracker.models.PlanExercise;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.WorkoutPlan;
 import org.key0.gymtracker.repositories.PlanExerciseRepository;
-import org.key0.gymtracker.repositories.UserRepository;
 import org.key0.gymtracker.repositories.WorkoutPlanRepository;
 import org.key0.gymtracker.services.UserService;
 import org.key0.gymtracker.services.PlanService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +26,6 @@ import java.util.*;
 @RequestMapping("/plan")
 @AllArgsConstructor
 public class PlanController {
-
     private final WorkoutPlanRepository workoutPlanRepository;
     private final PlanExerciseRepository planExerciseRepository;
     private final UserService userService;
@@ -53,7 +52,7 @@ public class PlanController {
             model.addAttribute("message", e.getMessage());
             return "error";
         }
-        return "redirect:/plan";
+        return "plan";
     }
 
     @GetMapping("/plan-creator")
@@ -188,6 +187,36 @@ public class PlanController {
 
             httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
         }
+
+        return "redirect:/plan/plan-creator/" + day;
+    }
+
+    @PostMapping("/plan-creator/move-up/{day}/{exercise}")
+    public String moveUpExercise(@PathVariable("day") Integer day,
+                                 @PathVariable("exercise") Integer exercise,
+                                 @AuthenticationPrincipal UserDetails currentUser){
+        User user = userService.getUser(currentUser);
+
+        if(day < 1 || day > 7) throw new RuntimeException("Wystąpił błąd, podano nieprawidłowy parametr: dzień");
+        if(exercise <= 1) return "redirect:/plan/plan-creator/" + day;
+
+        planService.swapExerciseNumbers(day, exercise, exercise - 1, user);
+
+        return "redirect:/plan/plan-creator/" + day;
+    }
+
+    @PostMapping("/plan-creator/move-down/{day}/{exercise}")
+    public String moveDownExercise(@PathVariable("day") Integer day,
+                                 @PathVariable("exercise") Integer exercise,
+                                 @AuthenticationPrincipal UserDetails currentUser){
+        User user = userService.getUser(currentUser);
+        WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
+
+        if(day < 1 || day > 7) throw new RuntimeException("Wystąpił błąd, podano nieprawidłowy parametr: dzień");
+        Integer exercisesCount = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), day).size();
+        if(exercise >= exercisesCount) return "redirect:/plan/plan-creator/" + day;
+
+        planService.swapExerciseNumbers(day, exercise, exercise + 1, user);
 
         return "redirect:/plan/plan-creator/" + day;
     }

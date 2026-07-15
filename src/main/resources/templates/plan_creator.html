@@ -76,6 +76,19 @@
                 <th:block th:each="exercise, stat : *{planExerciseList}">
                     <div class="form-card" th:if="${exercise.dayNumber == currentDay}">
                         <div class="form-card-header">
+                            <div class="card-nav">
+                                <button type="submit"
+                                        th:formaction="@{/plan/plan-creator/move-up/{day}/{exercise-number}(day=${currentDay}, exercise-number=${exercise.exerciseNumber})}"
+                                        class="btn-arrow-card" title="Przesuń w górę">
+                                    &uarr;
+                                </button>
+                                <button type="submit"
+                                        th:formaction="@{/plan/plan-creator/move-down/{day}/{exercise-number}(day=${currentDay}, exercise-number=${exercise.exerciseNumber})}"
+                                        class="btn-arrow-card" title="Przesuń w dół">
+                                    &darr;
+                                </button>
+                            </div>
+
                             <button type="submit"
                                     th:formaction="@{/plan/plan-creator/remove-exercise/{day}/{exercise-number}(day=${currentDay}, exercise-number=${exercise.exerciseNumber})}"
                                     class="btn-delete-card"

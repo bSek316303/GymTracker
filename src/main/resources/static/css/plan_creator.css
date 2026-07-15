@@ -38,6 +38,29 @@
     flex-wrap: wrap;
 }
 
+.card-nav {
+    display: flex;
+    gap: 12px; /* Odstęp między strzałkami */
+    align-items: center;
+}
+
+.btn-arrow-card {
+    background: none;
+    border: none;
+    color: #495057; /* Ten sam szary co przy X */
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.2s ease-in-out;
+    padding: 0 4px;
+}
+
+.btn-arrow-card:hover {
+    color: #ccff00; /* Limonkowy glow po najechaniu */
+    transform: scale(1.2);
+}
+
 @media (max-width: 480px) {
     .form-actions {
         flex-direction: column;
