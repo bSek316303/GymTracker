@@ -31,7 +31,6 @@ CREATE TABLE body_measurements (
 
 CREATE TABLE workout_plans (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    plan_name VARCHAR(32) NOT NULL,
     days_per_week INT NOT NULL,
     last_edit_date DATE NOT NULL,
     user_id BIGINT NOT NULL,

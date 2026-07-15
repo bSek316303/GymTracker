@@ -6,9 +6,11 @@ import org.key0.gymtracker.dto.WorkoutPlanDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -90,25 +92,29 @@ public class PlanService {
         }
     }
 
+    @Transactional
     public WorkoutPlan getOrCreateDefaultPlan(User user) {
         WorkoutPlan plan = workoutPlanRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
                     WorkoutPlan newPlan = new WorkoutPlan();
                     newPlan.setUser(user);
                     newPlan.setDaysPerWeek(3);
+                    newPlan.setLastEditDate(LocalDate.now());
                     WorkoutPlan savedPlan = workoutPlanRepository.save(newPlan);
 
                     TrackingParameter defaultTrackingParameter = TrackingParameter.REPETITIONS;
 
-                    PlanExercise defaultExercise = new PlanExercise();
-                    defaultExercise.setPlan(savedPlan);
-                    defaultExercise.setExerciseName("Przykładowe ćwiczenie");
-                    defaultExercise.setTargetSets(3);
-                    defaultExercise.setTrackingParameter(defaultTrackingParameter);
-                    defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje dotyczące ćwiczenia");
-                    defaultExercise.setDayNumber(1);
-                    defaultExercise.setExerciseNumber(1);
-                    planExerciseRepository.save(defaultExercise);
+                    for(int i = 1; i <= newPlan.getDaysPerWeek(); i++) {
+                        PlanExercise defaultExercise = new PlanExercise();
+                        defaultExercise.setPlan(savedPlan);
+                        defaultExercise.setExerciseName("Przykładowe ćwiczenie");
+                        defaultExercise.setTargetSets(3);
+                        defaultExercise.setTrackingParameter(defaultTrackingParameter);
+                        defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje dotyczące ćwiczenia");
+                        defaultExercise.setDayNumber(i);
+                        defaultExercise.setExerciseNumber(1);
+                        planExerciseRepository.save(defaultExercise);
+                    }
                     return savedPlan;
                 });
         return plan;

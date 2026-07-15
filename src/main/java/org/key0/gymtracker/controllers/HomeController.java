@@ -25,11 +25,8 @@ import java.util.Optional;
 @Controller
 @AllArgsConstructor
 public class HomeController {
-
-    private final UserRepository userRepository;
     private final WeightRepository weightRepository;
     private final WorkoutPlanRepository workoutPlanRepository;
-    private final PlanExerciseRepository planExerciseRepository;
     private final UserService userService;
 
     @GetMapping("/")
@@ -49,8 +46,8 @@ public class HomeController {
         Double latestWeight = null;
         LocalDate latestWeightDate = null;
         if (!weights.isEmpty()) {
-            latestWeight = weights.get(weights.size() - 1).getWeight();
-            latestWeightDate = weights.get(weights.size() -1).getWeightDate();
+            latestWeight = weights.getLast().getWeight();
+            latestWeightDate = weights.getLast().getWeightDate();
         }
 
         // Wrzucamy czystą wartość do modelu pod prostą nazwą
@@ -60,37 +57,19 @@ public class HomeController {
     }
 
     @GetMapping("/plan")
-    public String plan(Model model, @AuthenticationPrincipal UserDetails currentUser, RedirectAttributes redirectAttributes, HttpSession httpSession) {
+    public String plan(Model model, @AuthenticationPrincipal UserDetails currentUser, RedirectAttributes redirectAttributes) {
         User user = userService.getUser(currentUser);
         Optional<WorkoutPlan> oPlan = workoutPlanRepository.findByUserId(user.getId());
 
         if(oPlan.isEmpty()) {
             redirectAttributes.addFlashAttribute("warningMessage", "Nie znaleziono planu treningowego dla użytkownika");
-            model.addAttribute("plan", null);
-
-            return "plan";
+            model.addAttribute("workoutPlan", null);
         } else {
-            model.addAttribute("plan", oPlan.get());
+            model.addAttribute("workoutPlan", oPlan.get());
         }
 
-        Integer currDay = (Integer) httpSession.getAttribute("currentDay");
-        if (currDay == null) {
-            currDay = 1;
-            httpSession.setAttribute("currentDay", currDay);
-        }
-        model.addAttribute("currentDay", currDay);
-
-        final Integer currentDay = currDay;
-
-        List<PlanExercise> filteredExercises = null;
-        if(oPlan.isPresent()) {
-            filteredExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(oPlan.get().getId())
-                    .stream()
-                    .filter(pe -> currentDay.equals(pe.getDayNumber()))
-                    .toList();
-        }
-
-        model.addAttribute("exercises", filteredExercises);
+        model.addAttribute("exercises", null);
+        model.addAttribute("currentDay", 0);
 
         return "plan";
     }

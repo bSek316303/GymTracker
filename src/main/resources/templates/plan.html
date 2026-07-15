@@ -13,8 +13,8 @@
         <a type="button" class="btn-link margin-bottom-md" href='/plan/plan-creator'>Edytuj swój plan</a>
 
         <form method="post">
-            <div th:if="plan != null" class="day-selector">
-                <th:block th:each="i : ${#numbers.sequence(1, plan.daysPerWeek)}">
+            <div class="day-selector" th:if="${workoutPlan != null}">
+                <th:block th:each="i : ${#numbers.sequence(1, workoutPlan.daysPerWeek)}">
                     <button type="submit"
                             th:formaction="@{/plan/{day}(day=${i})}"
                             th:text="'Dzień ' + ${i}"
@@ -24,7 +24,7 @@
             </div>
         </form>
 
-        <div th:if="workoutPlan != null" class="exercises-container">
+        <div th:if="${workoutPlan != null && currentDay != 0}" class="exercises-container">
             <div th:each="exercise : ${exercises}" class="exercise-card">
                 <div class="exercise-header">
                     <i class="bi bi-activity exercise-icon"></i>
@@ -53,7 +53,7 @@
                 </div>
             </div>
         </div>
-        <div th:if="workoutPlan == null">
+        <div th:if="${workoutPlan == null}">
             <h2>Nie utworzyłeś jeszcze swojego planu treningowego. Utwórz go klikając przycisk utwórz plan treningowy!</h2>
         </div>
     </main>

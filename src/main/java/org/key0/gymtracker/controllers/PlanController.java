@@ -33,20 +33,24 @@ public class PlanController {
     private final PlanService planService;
 
     @PostMapping("/{day}")
-    public String viewExercises(Model model, @AuthenticationPrincipal UserDetails currentUser, @PathVariable Integer day, HttpSession httpSession){
+    public String viewExercises(Model model, @AuthenticationPrincipal UserDetails currentUser, @PathVariable Integer day){
         try {
             User user = userService.getUser(currentUser);
             Optional<WorkoutPlan> optionalWorkoutPlan = workoutPlanRepository.findByUserId(user.getId());
 
-            if(optionalWorkoutPlan.isEmpty()) model.addAttribute("workoutPlan", null);
+            if(optionalWorkoutPlan.isEmpty()) {
+                model.addAttribute("workoutPlan", null);
+                model.addAttribute("exercises", null);
+            }
             else {
-                model.addAttribute(optionalWorkoutPlan.get());
+                model.addAttribute("workoutPlan", optionalWorkoutPlan.get());
                 model.addAttribute("exercises", planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(optionalWorkoutPlan.get().getId()).stream().
                         filter(pe -> day.equals(pe.getDayNumber())));
             }
 
-            httpSession.setAttribute("currentDay", day);
+            model.addAttribute("currentDay", day);
         } catch (Exception e){
+            model.addAttribute("message", e.getMessage());
             return "error";
         }
         return "redirect:/plan";
@@ -69,6 +73,7 @@ public class PlanController {
             model.addAttribute("currentDay", null);
             model.addAttribute("trackingParameters", TrackingParameter.values());
         } catch (Exception e){
+            model.addAttribute("message", e.getMessage());
             return "error";
         }
 
