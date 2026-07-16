@@ -16,7 +16,6 @@ import org.key0.gymtracker.services.PlanService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -194,13 +193,29 @@ public class PlanController {
     @PostMapping("/plan-creator/move-up/{day}/{exercise}")
     public String moveUpExercise(@PathVariable("day") Integer day,
                                  @PathVariable("exercise") Integer exercise,
-                                 @AuthenticationPrincipal UserDetails currentUser){
+                                 @AuthenticationPrincipal UserDetails currentUser, HttpSession httpSession){
         User user = userService.getUser(currentUser);
 
         if(day < 1 || day > 7) throw new RuntimeException("Wystąpił błąd, podano nieprawidłowy parametr: dzień");
         if(exercise <= 1) return "redirect:/plan/plan-creator/" + day;
 
-        planService.swapExerciseNumbers(day, exercise, exercise - 1, user);
+        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto)httpSession.getAttribute("workoutPlanDto");
+
+        if (workoutPlanDto == null && workoutPlanDto.getPlanExerciseList() == null) throw new RuntimeException("Sesja http nie odtworzyła planu");
+
+        PlanExerciseDto firstExercise = workoutPlanDto.getPlanExerciseList().stream().
+                filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise).findFirst().
+                orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + exercise + " z dnia: " + day));
+
+        PlanExerciseDto secondExercise = workoutPlanDto.getPlanExerciseList().stream().
+                filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise - 1).findFirst().
+                orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + (exercise - 1) + " z dnia: " + day));
+
+        firstExercise.setExerciseNumber(exercise - 1);
+        secondExercise.setExerciseNumber(exercise);
+
+        httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+
 
         return "redirect:/plan/plan-creator/" + day;
     }
@@ -208,7 +223,7 @@ public class PlanController {
     @PostMapping("/plan-creator/move-down/{day}/{exercise}")
     public String moveDownExercise(@PathVariable("day") Integer day,
                                  @PathVariable("exercise") Integer exercise,
-                                 @AuthenticationPrincipal UserDetails currentUser){
+                                 @AuthenticationPrincipal UserDetails currentUser, HttpSession httpSession){
         User user = userService.getUser(currentUser);
         WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
 
@@ -216,7 +231,22 @@ public class PlanController {
         Integer exercisesCount = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), day).size();
         if(exercise >= exercisesCount) return "redirect:/plan/plan-creator/" + day;
 
-        planService.swapExerciseNumbers(day, exercise, exercise + 1, user);
+        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto)httpSession.getAttribute("workoutPlanDto");
+
+        if (workoutPlanDto == null && workoutPlanDto.getPlanExerciseList() == null) throw new RuntimeException("Sesja http nie odtworzyła planu");
+
+        PlanExerciseDto firstExercise = workoutPlanDto.getPlanExerciseList().stream().
+                filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise).findFirst().
+                orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + exercise + " z dnia: " + day));
+
+        PlanExerciseDto secondExercise = workoutPlanDto.getPlanExerciseList().stream().
+                filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise + 1).findFirst().
+                orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + (exercise + 1) + " z dnia: " + day));
+
+        firstExercise.setExerciseNumber(exercise + 1);
+        secondExercise.setExerciseNumber(exercise);
+
+        httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
 
         return "redirect:/plan/plan-creator/" + day;
     }
