@@ -3,6 +3,7 @@ package org.key0.gymtracker.controllers;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
+import org.key0.gymtracker.dto.ExerciseResultDto;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
 import org.key0.gymtracker.enums.TrackingParameter;
@@ -13,6 +14,7 @@ import org.key0.gymtracker.repositories.PlanExerciseRepository;
 import org.key0.gymtracker.repositories.WorkoutPlanRepository;
 import org.key0.gymtracker.services.UserService;
 import org.key0.gymtracker.services.PlanService;
+import org.springframework.boot.micrometer.observation.autoconfigure.ObservationProperties;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -99,7 +101,7 @@ public class PlanController {
             @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
             HttpSession httpSession)
     {
-        if(currentDay != 8) updateSessionFromForm(currentDay, updatedPlanDto, httpSession);
+        if(currentDay != 8) planService.updateSessionFromForm(currentDay, updatedPlanDto, httpSession);
         return "redirect:/plan/plan-creator/" + targetDay;
     }
 
@@ -110,7 +112,7 @@ public class PlanController {
         try {
             WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
-            updateSessionFromForm(day, updatedPlanDto, httpSession);
+            planService.updateSessionFromForm(day, updatedPlanDto, httpSession);
 
             if (workoutPlanDto != null) {
                 planService.ensureExerciseList(workoutPlanDto);
@@ -173,7 +175,7 @@ public class PlanController {
                                         @PathVariable("exerciseNumber") Integer exerciseNumber,
                                         @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
                                         HttpSession httpSession) {
-        updateSessionFromForm(day, updatedPlanDto, httpSession);
+        planService.updateSessionFromForm(day, updatedPlanDto, httpSession);
 
         WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
@@ -193,60 +195,66 @@ public class PlanController {
     @PostMapping("/plan-creator/move-up/{day}/{exercise}")
     public String moveUpExercise(@PathVariable("day") Integer day,
                                  @PathVariable("exercise") Integer exercise,
-                                 @AuthenticationPrincipal UserDetails currentUser, HttpSession httpSession){
-        User user = userService.getUser(currentUser);
+                                 @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+                                 HttpSession httpSession)
+    {
+        updatedPlanDto.getPlanExerciseList().removeIf(exerciseDto ->exerciseDto.getTrackingParameter() == null);
+        System.out.println("Exercise number to switch: " + exercise);
 
         if(day < 1 || day > 7) throw new RuntimeException("Wystąpił błąd, podano nieprawidłowy parametr: dzień");
         if(exercise <= 1) return "redirect:/plan/plan-creator/" + day;
 
-        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto)httpSession.getAttribute("workoutPlanDto");
-
-        if (workoutPlanDto == null && workoutPlanDto.getPlanExerciseList() == null) throw new RuntimeException("Sesja http nie odtworzyła planu");
-
-        PlanExerciseDto firstExercise = workoutPlanDto.getPlanExerciseList().stream().
+        PlanExerciseDto firstExercise = updatedPlanDto.getPlanExerciseList().stream().
                 filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise).findFirst().
                 orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + exercise + " z dnia: " + day));
 
-        PlanExerciseDto secondExercise = workoutPlanDto.getPlanExerciseList().stream().
+        PlanExerciseDto secondExercise = updatedPlanDto.getPlanExerciseList().stream().
                 filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise - 1).findFirst().
                 orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + (exercise - 1) + " z dnia: " + day));
+
+        System.out.println("Setting exercise number to exercise: " + firstExercise.getExerciseName() + " Current number: " + firstExercise.getExerciseNumber() + " Changing to: " + (exercise - 1));
+        System.out.println("Setting exercise number to exercise: " + secondExercise.getExerciseName() + " Current number: " + secondExercise.getExerciseNumber() + " Changing to: " + exercise);
 
         firstExercise.setExerciseNumber(exercise - 1);
         secondExercise.setExerciseNumber(exercise);
 
-        httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+        updatedPlanDto.getPlanExerciseList().sort(Comparator.comparingInt(PlanExerciseDto::getExerciseNumber));
 
+        planService.updateSessionFromForm(day, updatedPlanDto, httpSession);
 
         return "redirect:/plan/plan-creator/" + day;
     }
 
     @PostMapping("/plan-creator/move-down/{day}/{exercise}")
     public String moveDownExercise(@PathVariable("day") Integer day,
-                                 @PathVariable("exercise") Integer exercise,
-                                 @AuthenticationPrincipal UserDetails currentUser, HttpSession httpSession){
-        User user = userService.getUser(currentUser);
-        WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
+                                   @PathVariable("exercise") Integer exercise,
+                                   @ModelAttribute("workoutPlanDto") WorkoutPlanDto updatedPlanDto,
+                                   HttpSession httpSession)
+    {
+        updatedPlanDto.getPlanExerciseList().removeIf(exerciseDto ->exerciseDto.getTrackingParameter() == null);
 
+        updatedPlanDto.getPlanExerciseList().removeIf(Objects::isNull);
+
+        System.out.println("Exercise number to switch: " + exercise);
         if(day < 1 || day > 7) throw new RuntimeException("Wystąpił błąd, podano nieprawidłowy parametr: dzień");
-        Integer exercisesCount = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), day).size();
+        int exercisesCount = updatedPlanDto.getPlanExerciseList().size();
+
         if(exercise >= exercisesCount) return "redirect:/plan/plan-creator/" + day;
 
-        WorkoutPlanDto workoutPlanDto = (WorkoutPlanDto)httpSession.getAttribute("workoutPlanDto");
-
-        if (workoutPlanDto == null && workoutPlanDto.getPlanExerciseList() == null) throw new RuntimeException("Sesja http nie odtworzyła planu");
-
-        PlanExerciseDto firstExercise = workoutPlanDto.getPlanExerciseList().stream().
+        PlanExerciseDto firstExercise = updatedPlanDto.getPlanExerciseList().stream().
                 filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise).findFirst().
                 orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + exercise + " z dnia: " + day));
 
-        PlanExerciseDto secondExercise = workoutPlanDto.getPlanExerciseList().stream().
+        PlanExerciseDto secondExercise = updatedPlanDto.getPlanExerciseList().stream().
                 filter(ex -> day.equals(ex.getDayNumber()) && ex.getExerciseNumber() == exercise + 1).findFirst().
                 orElseThrow(() -> new RuntimeException("Nie znaleziono ćwiczenia z takim numerem: " + (exercise + 1) + " z dnia: " + day));
 
         firstExercise.setExerciseNumber(exercise + 1);
         secondExercise.setExerciseNumber(exercise);
 
-        httpSession.setAttribute("workoutPlanDto", workoutPlanDto);
+        updatedPlanDto.getPlanExerciseList().sort(Comparator.comparingInt(PlanExerciseDto::getExerciseNumber));
+
+        planService.updateSessionFromForm(day, updatedPlanDto, httpSession);
 
         return "redirect:/plan/plan-creator/" + day;
     }
@@ -259,7 +267,7 @@ public class PlanController {
 
         try {
             if (day != null) {
-                updateSessionFromForm(day, updatedPlanDto, httpSession);
+                planService.updateSessionFromForm(day, updatedPlanDto, httpSession);
             }
 
             User user = userService.getUser(currentUser);
@@ -294,44 +302,6 @@ public class PlanController {
             e.printStackTrace();
             return "error";
         }
-    }
-
-    private void updateSessionFromForm(Integer day, WorkoutPlanDto updatedPlanDto, HttpSession httpSession) {
-        WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
-
-        if (currentSessionDto == null) return;
-
-        planService.ensureExerciseList(currentSessionDto);
-        currentSessionDto.getPlanExerciseList().removeIf(Objects::isNull);
-
-        if (day != null) {
-            if (updatedPlanDto != null && updatedPlanDto.getPlanExerciseList() != null) {
-                currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
-
-                List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
-                        .filter(Objects::nonNull)
-                        .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
-                        .filter(ex -> day.equals(ex.getDayNumber()))
-                        .toList();
-
-                currentSessionDto.getPlanExerciseList().addAll(validExercisesFromForm);
-            }
-
-            boolean isDayEmpty = currentSessionDto.getPlanExerciseList().stream()
-                    .noneMatch(ex -> day.equals(ex.getDayNumber()));
-
-            if (isDayEmpty && currentSessionDto.getDaysPerWeek() > 1) {
-
-                currentSessionDto.setDaysPerWeek(currentSessionDto.getDaysPerWeek() - 1);
-
-                currentSessionDto.getPlanExerciseList().stream()
-                        .filter(ex -> ex.getDayNumber() > day)
-                        .forEach(ex -> ex.setDayNumber(ex.getDayNumber() - 1));
-            }
-        }
-
-        currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
-        httpSession.setAttribute("workoutPlanDto", currentSessionDto);
     }
 
     private TrackingParameter parseTrackingParameter(String trackingParameter) {

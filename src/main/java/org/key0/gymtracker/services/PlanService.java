@@ -1,5 +1,6 @@
 package org.key0.gymtracker.services;
 
+import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
@@ -151,23 +152,42 @@ public class PlanService {
         }
     }
 
-    @Transactional
-    public void swapExerciseNumbers(int day, int firstNumber, int secondNumber, User user){
-        Map<String, PlanExercise> planExerciseMap = getPlanExercisesMap(user);
+    public void updateSessionFromForm(Integer day, WorkoutPlanDto updatedPlanDto, HttpSession httpSession) {
+        WorkoutPlanDto currentSessionDto = (WorkoutPlanDto) httpSession.getAttribute("workoutPlanDto");
 
-        PlanExercise firstPe = planExerciseMap.get(String.valueOf(day) + "-" + String.valueOf(firstNumber));
-        PlanExercise secondPe = planExerciseMap.get(String.valueOf(day) + "-" + String.valueOf(secondNumber));
+        if (currentSessionDto == null) return;
 
-        if (firstPe == null || secondPe == null) throw new IllegalArgumentException("Nie znaleziono ćwiczeń do zamiany");
+        ensureExerciseList(currentSessionDto);
+        currentSessionDto.getPlanExerciseList().removeIf(Objects::isNull);
 
-        firstPe.setExerciseNumber(-1);
-        planExerciseRepository.saveAndFlush(firstPe);
+        if (day != null) {
+            if (updatedPlanDto != null && updatedPlanDto.getPlanExerciseList() != null) {
+                currentSessionDto.getPlanExerciseList().removeIf(ex -> day.equals(ex.getDayNumber()));
 
-        secondPe.setExerciseNumber(firstNumber);
-        planExerciseRepository.saveAndFlush(secondPe);
+                List<PlanExerciseDto> validExercisesFromForm = updatedPlanDto.getPlanExerciseList().stream()
+                        .filter(Objects::nonNull)
+                        .filter(ex -> ex.getExerciseName() != null && !ex.getExerciseName().trim().isEmpty())
+                        .filter(ex -> day.equals(ex.getDayNumber()))
+                        .toList();
 
-        firstPe.setExerciseNumber(secondNumber);
-        planExerciseRepository.save(firstPe);
+                currentSessionDto.getPlanExerciseList().addAll(validExercisesFromForm);
+            }
+
+            boolean isDayEmpty = currentSessionDto.getPlanExerciseList().stream()
+                    .noneMatch(ex -> day.equals(ex.getDayNumber()));
+
+            if (isDayEmpty && currentSessionDto.getDaysPerWeek() > 1) {
+
+                currentSessionDto.setDaysPerWeek(currentSessionDto.getDaysPerWeek() - 1);
+
+                currentSessionDto.getPlanExerciseList().stream()
+                        .filter(ex -> ex.getDayNumber() > day)
+                        .forEach(ex -> ex.setDayNumber(ex.getDayNumber() - 1));
+            }
+        }
+
+        currentSessionDto.getPlanExerciseList().removeIf(ex -> ex.getDayNumber() > currentSessionDto.getDaysPerWeek());
+        httpSession.setAttribute("workoutPlanDto", currentSessionDto);
     }
 
     public Map<String, PlanExercise> getPlanExercisesMap(User user){
