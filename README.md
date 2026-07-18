@@ -75,9 +75,9 @@ Zaimportuj strukturę tabel:
 
 Wybierz stworzoną bazę gymtracker.
 
-Kliknij zakładkę "Import".
+Wejdź w zakładkę SQL.
 
-Wybierz plik db.sql.txt znajdujący się w głównym katalogu projektu i kliknij "Go" (Wykonaj).
+Przekopiuj zawartość db.sql.txt w miejsce na zapytania SQL.
 
 4. Uruchomienie aplikacji
 Opcja A: Przez IntelliJ IDEA (zalecane dla programistów)
@@ -96,6 +96,7 @@ Windows:
 
 Bash
 mvnw.cmd spring-boot:run
+
 Linux / macOS:
 
 Bash
