@@ -15,7 +15,7 @@
                     <div class="profile-avatar"></div>
                     <div class="profile-meta">
                         <h2 class="profile-username" th:text="'Witaj, ' + ${user.username}"></h2>
-                        <span class="profile-role">Klubowicz (Stały staż)</span>
+                        <a href="/statistics/home">statystyki</a>
                         <p>Ostatnia zmierzona waga:
                             <strong th:text="${latestWeight != null} ? ${latestWeight} + ' kg' : 'Brak danych'"></strong>
                         </p>

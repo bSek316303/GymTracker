@@ -1,6 +1,7 @@
 package org.key0.gymtracker.services;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.key0.gymtracker.models.BodyMeasurement;
 import org.key0.gymtracker.models.User;
 import org.key0.gymtracker.models.Weight;
@@ -10,16 +11,13 @@ import org.key0.gymtracker.repositories.WeightRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class BodyMeasurementService {
     private final BodyMeasurementsRepository bodyMeasurementsRepository;
     private final UserRepository userRepository;
-
-    public BodyMeasurementService(BodyMeasurementsRepository bodyMeasurementsRepository, UserRepository userRepository) {
-        this.bodyMeasurementsRepository = bodyMeasurementsRepository;
-        this.userRepository = userRepository;
-    }
 
     @Transactional
     public void addMeasurementToUser(String username, BodyMeasurement bodyMeasurement) {

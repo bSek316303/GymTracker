@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head th:replace="~{fragments/head :: head('Main', ~{::.page-resources})}">
+    <th:block class="page-resources"></th:block>
+</head>
+<body>
+
+<header th:replace="~{fragments/header}"></header>
+
+<main>
+    <div class="form-card">
+        <div class="form-card-header">
+            <span class="exercise-id">Statystyki Postępów</span>
+        </div>
+
+        <div class="form-card-body">
+            <form th:action="@{/statistics/{type}(type=${viewMode})}" method="get" style="width: 100%;">
+
+                <div class="day-selector" style="margin-bottom: 24px;">
+
+                    <input type="radio" id="modeWeight" value="weight"
+                           th:checked="${viewMode == 'weight'}"
+                           onchange="window.location.href='/statistics/' + this.value">
+                    <label for="modeWeight" class="day-button"
+                           th:classappend="${viewMode == 'weight'} ? 'day-button-glow'">Waga</label>
+
+                    <input type="radio" id="modeMeas" value="measurement"
+                           th:checked="${viewMode == 'measurement'}"
+                           onchange="window.location.href='/statistics/' + this.value">
+                    <label for="modeMeas" class="day-button"
+                           th:classappend="${viewMode == 'measurement'} ? 'day-button-glow'">Pomiary</label>
+
+                    <input type="radio" id="modeEx" value="exercise"
+                           th:checked="${viewMode == 'exercise'}"
+                           onchange="window.location.href='/statistics/' + this.value">
+                    <label for="modeEx" class="day-button"
+                           th:classappend="${viewMode == 'exercise'} ? 'day-button-glow'">Ćwiczenia</label>
+                </div>
+
+                <div th:if="${viewMode == 'measurement'}" class="field-container wide" style="margin-bottom: 24px;">
+                    <label class="field-label">Wybierz pomiary do wyświetlenia:</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="chest" th:checked="${fields != null and #lists.contains(fields, 'chest')}"> Klatka piersiowa
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="shoulders" th:checked="${fields != null and #lists.contains(fields, 'shoulders')}"> Barki
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="biceps" th:checked="${fields != null and #lists.contains(fields, 'biceps')}"> Biceps
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="thigh" th:checked="${fields != null and #lists.contains(fields, 'thigh')}"> Udo
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="waist" th:checked="${fields != null and #lists.contains(fields, 'waist')}"> Pas
+                        </label>
+                    </div>
+                </div>
+
+                <div th:if="${viewMode == 'exercise'}" class="field-container wide" style="margin-bottom: 24px;">
+                    <label class="field-label">Wybierz ćwiczenia do wyświetlenia:</label>
+                    <div class="checkbox-group">
+                        <label th:each="ex : ${exercises}" class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" th:value="${ex.id}"
+                                   th:checked="${fields != null and #lists.contains(fields, ex.id.toString())}">
+                            <span th:text="${ex.exerciseName}">Nazwa ćwiczenia</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field-container wide">
+                    <button th:if="${viewMode != 'weight'}" type="submit" name="action" value="generate" class="button btn-primary" style="width: 100%;">
+                        Wyświetl
+                    </button>
+
+                    <button th:if="${viewMode == 'weight'}" type="submit" name="action" value="generate" class="button btn-primary" style="width: 100%;">
+                        Wyświetl Wagę
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="form-card" th:if="${action == 'generate'}">
+        <div class="form-card-body">
+            <label class="field-label">Twój Wykres</label>
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer}"></footer>
+
+</body>
+</html>
