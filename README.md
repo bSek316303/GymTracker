@@ -1,6 +1,7 @@
 ---IN PROGRESS -> NIE WSZYSTKIE FUNKCJE ZOSTAŁY ZAIMPLEMENTOWANE---
 
 GymProgressTracker
+
 GymProgressTracker to zaawansowana aplikacja do precyzyjnego śledzenia postępów treningowych. Została zaprojektowana z myślą o osobach, które chcą świadomie zarządzać swoim planem, kontrolować progresję z tygodnia na tydzień i błyskawicznie reagować na potencjalną stagnację.
 
 
@@ -56,7 +57,7 @@ IDE (opcjonalnie, np. IntelliJ IDEA)
 Sklonuj repozytorium do wybranego folderu:
 
 Bash
-git clone [TUTAJ_LINK_DO_TWOJEGO_REPOZYTORIUM]
+git clone https://github.com/bSek316303/GymTracker.git
 cd GymProgressTracker
 3. Konfiguracja bazy danych (MariaDB)
 Uruchom XAMPP Control Panel.
