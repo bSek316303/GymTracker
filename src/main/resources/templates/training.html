@@ -61,7 +61,7 @@
                 </th:block>
             </h2>
 
-            <div class="exercise-notes">
+            <div class="exercise-guidelines">
                 <th:block th:each="planEx: ${planExerciseList}" th:if="${planEx.guidelines != null && !planEx.guidelines.isEmpty() && planEx.exerciseNumber == currentExerciseNumber}">
                     <i class="bi bi-sticky"></i>
                     <p th:text="${planEx.guidelines}">Tutaj pojawią się wytyczne do ćwiczenia...</p>
