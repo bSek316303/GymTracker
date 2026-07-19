@@ -47,9 +47,9 @@
                     </div>
                 </div>
 
-                <div th:if="${exercise.notes != null && !exercise.notes.isEmpty()}" class="exercise-notes">
+                <div th:if="${exercise.guidelines != null && !exercise.guidelines.isEmpty()}" class="exercise-notes">
                     <i class="bi bi-sticky"></i>
-                    <p th:text="${exercise.notes}">Tutaj pojawią się notatki do ćwiczenia...</p>
+                    <p th:text="${exercise.guidelines}">Tutaj pojawią się wytyczne do ćwiczenia...</p>
                 </div>
             </div>
         </div>

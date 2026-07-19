@@ -61,6 +61,13 @@
                 </th:block>
             </h2>
 
+            <div class="exercise-notes">
+                <th:block th:each="planEx: ${planExerciseList}" th:if="${planEx.guidelines != null && !planEx.guidelines.isEmpty() && planEx.exerciseNumber == currentExerciseNumber}">
+                    <i class="bi bi-sticky"></i>
+                    <p th:text="${planEx.guidelines}">Tutaj pojawią się wytyczne do ćwiczenia...</p>
+                </th:block>
+            </div>
+
             <div class="parameters-wrapper">
                 <div th:each="setLog, stat : *{setLogs}" class="set-card">
                     <h3 class="set-title">Seria <span th:text="${stat.count}">1</span></h3>

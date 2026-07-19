@@ -41,19 +41,25 @@
                     <label class="field-label">Wybierz pomiary do wyświetlenia:</label>
                     <div class="checkbox-group">
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" name="fields" value="chest" th:checked="${fields != null and #lists.contains(fields, 'chest')}"> Klatka piersiowa
+                            <input type="checkbox" name="fields" value="chest" th:checked="${fields != null and fields.contains('chest')}"> <span>Klatka piersiowa</span>
                         </label>
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" name="fields" value="shoulders" th:checked="${fields != null and #lists.contains(fields, 'shoulders')}"> Barki
+                            <input type="checkbox" name="fields" value="shoulders" th:checked="${fields != null and fields.contains('shoulders')}"> <span>Barki</span>
                         </label>
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" name="fields" value="biceps" th:checked="${fields != null and #lists.contains(fields, 'biceps')}"> Biceps
+                            <input type="checkbox" name="fields" value="biceps" th:checked="${fields != null and fields.contains('biceps')}"> <span>Biceps</span>
                         </label>
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" name="fields" value="thigh" th:checked="${fields != null and #lists.contains(fields, 'thigh')}"> Udo
+                            <input type="checkbox" name="fields" value="thigh" th:checked="${fields != null and fields.contains('thigh')}"> <span>Udo</span>
                         </label>
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" name="fields" value="waist" th:checked="${fields != null and #lists.contains(fields, 'waist')}"> Pas
+                            <input type="checkbox" name="fields" value="waist" th:checked="${fields != null and fields.contains('waist')}"> <span>Pas</span>
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="biceps" th:checked="${fields != null and fields.contains('belly')}"> <span>Brzuch</span>
+                        </label>
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" name="fields" value="biceps" th:checked="${fields != null and fields.contains('hips')}"> <span>Biodra</span>
                         </label>
                     </div>
                 </div>
@@ -63,7 +69,7 @@
                     <div class="checkbox-group">
                         <label th:each="ex : ${exercises}" class="checkbox-wrapper">
                             <input type="checkbox" name="fields" th:value="${ex.id}"
-                                   th:checked="${fields != null and #lists.contains(fields, ex.id.toString())}">
+                                   th:checked="${fields != null and fields.contains(#strings.trim(ex.id.toString()))}">
                             <span th:text="${ex.exerciseName}">Nazwa ćwiczenia</span>
                         </label>
                     </div>

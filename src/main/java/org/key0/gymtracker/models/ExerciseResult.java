@@ -14,6 +14,9 @@ public class ExerciseResult {
     @Column(name="id")
     private Long id;
 
+    @Column(name="notes", nullable = true)
+    private String notes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "training_id", nullable = false)
     private Training training;

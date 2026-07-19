@@ -314,3 +314,63 @@ select.field-input {
     transform: rotate(-135deg);
     border-color: #ccff00;
 }
+
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #bdc5cd;
+    font-size: 14px;
+    font-weight: 600;
+    transition:all 0.3s ease;
+    padding: 10px 16px;
+    background-color: #1d2125;
+    border: 2px solid #282e33;
+    border-radius: 8px;
+    user-select: none;
+    margin-bottom: 0; /* Reset marginesu z labela */
+    min-width: 120px; /* Opcjonalnie: minimalna szerokość, aby przyciski były równe */
+    text-align: center;
+}
+
+/* Efekt najechania myszką (hover) */
+.checkbox-wrapper:hover {
+    background-color: #22272c;
+    border-color: #3c444d;
+    color: #ffffff;
+}
+
+/*
+--- Stan Zaznaczony (KLUCZOWA ZMIANA) ---
+Cały kafelek zmienia styl, gdy input wewnątrz jest zaznaczony.
+Wymaga przeglądarki wspierającej :has() (współczesne Chrome, FF, Safari).
+*/
+.checkbox-wrapper:has(input[type="checkbox"]:checked) {
+    background-color: #ccff00; /* Limonkowy background */
+    color: #111416;            /* Ciemny tekst */
+    border-color: #ccff00;
+    box-shadow: 0 0 15px rgba(204, 255, 0, 0.3); /* Subtelne świecenie */
+    font-weight: 700;          /* Pogrubienie tekstu przy zaznaczeniu */
+}
+
+/* Opcjonalnie: Jeśli chcesz, żeby tekst w środku też miał hover w stanie aktywnym */
+.checkbox-wrapper:has(input[type="checkbox"]:checked):hover {
+    background-color: #d4ff33; /* Jaśniejszy limonkowy przy hoverze */
+    box-shadow: 0 0 20px rgba(204, 255, 0, 0.5);
+}

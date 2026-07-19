@@ -97,6 +97,7 @@ public class StatisticsController {
             case ("exercise") -> {
                 WorkoutPlan plan = null;
 
+                model.addAttribute("fields", fields);
                 try {
                     plan = planService.getWorkoutPlan(user);
                 } catch (Exception e){

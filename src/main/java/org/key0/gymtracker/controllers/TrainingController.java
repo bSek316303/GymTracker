@@ -99,7 +99,7 @@ public class TrainingController {
                 historySetLogs = setLogRepository.findByExerciseResultId(historyExerciseResult.getId());
             }
 
-            boolean isLastExercise = !exerciseResultDtoMap.containsKey(2);
+            boolean isLastExercise = exerciseResultDtoMap.containsKey(exerciseNumber + 1);
 
             // Informacje dotyczące prostych parametrów
             model.addAttribute("weekNumber", weekNumber);

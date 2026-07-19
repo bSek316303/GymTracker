@@ -63,6 +63,7 @@ CREATE TABLE trainings (
 
 create table exercise_results (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    notes VARCHAR(1024) NULL,
     training_id BIGINT,
     exercise_id BIGINT,
 

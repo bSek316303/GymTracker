@@ -24,8 +24,8 @@ public class PlanExercise {
     @Column(name="tracking_parameter", nullable = false)
     private TrackingParameter trackingParameter;
 
-    @Column(name="notes", nullable = true)
-    private String notes;
+    @Column(name="guidelines", nullable = true)
+    private String guidelines;
 
     @Column(name="day_number", nullable = false)
     private int dayNumber;

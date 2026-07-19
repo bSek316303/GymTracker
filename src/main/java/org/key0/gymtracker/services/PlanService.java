@@ -111,7 +111,7 @@ public class PlanService {
                         defaultExercise.setExerciseName("Przykładowe ćwiczenie");
                         defaultExercise.setTargetSets(3);
                         defaultExercise.setTrackingParameter(defaultTrackingParameter);
-                        defaultExercise.setNotes("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje dotyczące ćwiczenia");
+                        defaultExercise.setGuidelines("Zmień nazwę i serie, notatki są opcjonalne i pomagają zapamiętać ważne informacje dotyczące ćwiczenia");
                         defaultExercise.setDayNumber(i);
                         defaultExercise.setExerciseNumber(1);
                         planExerciseRepository.save(defaultExercise);
@@ -205,7 +205,7 @@ public class PlanService {
         pe.setTargetSets(peDto.getTargetSets());
         pe.setExerciseName(peDto.getExerciseName());
         pe.setExerciseNumber(peDto.getExerciseNumber());
-        pe.setNotes(peDto.getNotes());
+        pe.setGuidelines(peDto.getGuidelines());
         pe.setDayNumber(peDto.getDayNumber());
         pe.setTrackingParameter(TrackingParameter.fromString(peDto.getTrackingParameter()));
     }
