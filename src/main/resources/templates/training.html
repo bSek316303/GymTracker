@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <form th:action="@{/training/{week}/{day}/{ex}(week=${weekNumber}, day=${dayNumber}, ex=${currentExerciseNumber + 1})}"
+        <form th:action="@{/training/{week}/{day}/{curEx}/{nextEx}(week=${weekNumber}, day=${dayNumber}, curEx=${currentExerciseNumber}, nextEx=${currentExerciseNumber + 1})}"
               th:method="post" th:object="${currentExerciseDto}" class="exercise-container">
 
             <input type="hidden" th:field="*{training.Id}" />
@@ -44,7 +44,7 @@
                     <div class="exercise-grid">
                         <button th:each="planEx : ${planExerciseList}"
                                 type="button"
-                                th:data-target-url="@{/training/{week}/{day}/{exNum}(week=${weekNumber}, day=${dayNumber}, exNum=${planEx.exerciseNumber})}"
+                                th:data-target-url="@{/training/{week}/{day}/{curEx}/{exNum}(week=${weekNumber}, day=${dayNumber}, curEx=${currentExerciseNumber}, exNum=${planEx.exerciseNumber})}"
                                 class="exercise-tile dropdown-submit-btn"
                                 th:classappend="${planEx.exerciseNumber == currentExerciseNumber} ? 'active' : ''"
                                 style="background: none; border: none; width: 100%; text-align: left; cursor: pointer;">

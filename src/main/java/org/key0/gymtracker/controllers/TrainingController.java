@@ -68,12 +68,15 @@ public class TrainingController {
                                  @PathVariable("old-exercise-number") Integer oldExerciseNumber,
                                  @PathVariable("new-exercise-number") Integer newExerciseNumber,
                                  Model model, HttpSession httpSession  ) {
-        try{
+        try
+        {
             trainingService.saveExerciseResultDto(currentExerciseDto);
 
             Map<Integer, ExerciseResultDto> map = (Map<Integer, ExerciseResultDto>) httpSession.getAttribute("exerciseResultDtoMap");
             map.put(oldExerciseNumber, currentExerciseDto);
+            httpSession.setAttribute("exerciseResultDtoMap", map);
         } catch(Exception e){
+            model.addAttribute("message", e.getMessage());
             return "error";
         }
 
