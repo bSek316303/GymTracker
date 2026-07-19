@@ -43,7 +43,7 @@ CREATE TABLE plan_exercises (
     exercise_name VARCHAR(255) NOT NULL,
     target_sets INT NOT NULL,
     tracking_parameter ENUM('REPETITIONS',  'TIME', 'DISTANCE', 'CALORIES') NOT NULL,
-    notes VARCHAR(255) NULL,
+    guidelines VARCHAR(255) NULL,
     day_number INT NOT NULL,
     exercise_number INT NOT NULL,
     plan_id BIGINT NOT NULL,
