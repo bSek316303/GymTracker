@@ -14,13 +14,13 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class ExerciseResultDto {
-    Training training;
+    Long trainingId;
     List<SetLogDto> setLogs= new ArrayList<>();
-    PlanExercise exercise;
+    Long exerciseId;
 
-    public ExerciseResultDto(Training training, Integer listSize, PlanExercise exercise){
-        this.training = training;
-        this.exercise = exercise;
+    public ExerciseResultDto(Long trainingId, Integer listSize, Long exerciseId){
+        this.trainingId = trainingId;
+        this.exerciseId = exerciseId;
         for(int i = 0; i < listSize; i++){
             SetLogDto setLog = new SetLogDto();
             setLog.setSetNumber(i + 1);

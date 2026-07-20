@@ -28,7 +28,9 @@
         <form th:action="@{/training/{week}/{day}/{curEx}/{nextEx}(week=${weekNumber}, day=${dayNumber}, curEx=${currentExerciseNumber}, nextEx=${currentExerciseNumber + 1})}"
               th:method="post" th:object="${currentExerciseDto}" class="exercise-container">
 
-            <input type="hidden" th:field="*{training.Id}" />
+            <input type="hidden" th:field="*{trainingId}" />
+            <input type="hidden" th:field="*{exerciseId}" />
+
 
             <div class="custom-dropdown">
                 <div class="dropdown-trigger" id="dropdownTrigger">

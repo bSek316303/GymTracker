@@ -3,8 +3,6 @@ package org.key0.gymtracker.controllers;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.key0.gymtracker.dto.ExerciseResultDto;
-import org.key0.gymtracker.dto.SetLogDto;
-import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
 import org.key0.gymtracker.services.TrainingService;
@@ -18,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/training")
@@ -29,6 +28,7 @@ public class TrainingController {
     private final UserService userService;
     private final PlanService planService;
     private final TrainingService trainingService;
+    private final PlanExerciseRepository planExerciseRepository;
 
     @GetMapping("/choose-training")
     public String chooseTraining(@AuthenticationPrincipal UserDetails currentUser, Model model){
@@ -72,6 +72,13 @@ public class TrainingController {
         {
             trainingService.saveExerciseResultDto(currentExerciseDto);
 
+            Map<Long, PlanExercise> planExerciseMap = (Map<Long, PlanExercise>)httpSession.getAttribute("planExerciseMap");
+
+            if(planExerciseMap.values().stream().noneMatch(pe -> pe.getExerciseNumber() == newExerciseNumber)){
+                return "redirect:/profile";
+                // Tutaj w przyszłości można wrzucić podsumowanie sesji treningowej póki co jest tak.
+            }
+
             Map<Integer, ExerciseResultDto> map = (Map<Integer, ExerciseResultDto>) httpSession.getAttribute("exerciseResultDtoMap");
             map.put(oldExerciseNumber, currentExerciseDto);
             httpSession.setAttribute("exerciseResultDtoMap", map);
@@ -91,7 +98,8 @@ public class TrainingController {
                                   Model model, HttpSession httpSession  ) {
         try {
             Map<Integer, ExerciseResultDto> exerciseResultDtoMap = (Map<Integer, ExerciseResultDto>)httpSession.getAttribute("exerciseResultDtoMap");
-            List<PlanExercise> planExerciseList = exerciseResultDtoMap.values().stream().map(ExerciseResultDto::getExercise).toList();
+            Map<Long, PlanExercise> planExerciseMap = (Map<Long, PlanExercise>)httpSession.getAttribute("planExerciseMap");
+            List<PlanExercise> planExerciseList = planExerciseMap.values().stream().toList();
             Map<Integer, ExerciseResult> historyExerciseResults = null;
             ExerciseResult historyExerciseResult = null;
             List<SetLog> historySetLogs = null;
@@ -102,14 +110,14 @@ public class TrainingController {
                 historySetLogs = setLogRepository.findByExerciseResultId(historyExerciseResult.getId());
             }
 
-            boolean isLastExercise = exerciseResultDtoMap.containsKey(exerciseNumber + 1);
+            boolean isLastExercise = !exerciseResultDtoMap.containsKey(exerciseNumber + 1);
 
             // Informacje dotyczące prostych parametrów
             model.addAttribute("weekNumber", weekNumber);
             model.addAttribute("dayNumber", dayNumber);
             model.addAttribute("currentExerciseNumber", exerciseNumber);
             model.addAttribute("isLastExercise", isLastExercise);
-            model.addAttribute("parameter", exerciseResultDtoMap.get(exerciseNumber).getExercise().getTrackingParameter().toString());
+            model.addAttribute("parameter", planExerciseMap.get(exerciseResultDtoMap.get(exerciseNumber).getExerciseId()).getTrackingParameter().toString());
 
             // Informacje dotyczące złożonych obiektów
             model.addAttribute("currentExerciseDto", exerciseResultDtoMap.get(exerciseNumber));
@@ -137,6 +145,8 @@ public class TrainingController {
             Training training = trainingService.getOrCreateTraining(weekNumber, dayNumber, workoutPlan); // Możemy albo rozpocząć nowy trening albo wrócić do starego.
             trainingService.prepareTraining(training);
             Map<Integer, ExerciseResultDto> exerciseResultDtoMap = trainingService.getExerciseResultDtoMap(training);
+            Map<Long, PlanExercise> planExerciseMap = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber)
+                    .stream().collect(Collectors.toMap(planExercise->planExercise.getId(), planExercise -> planExercise));
 
             Map<Integer, ExerciseResult> historyExerciseResults = null;
             if(weekNumber > 1) {
@@ -146,6 +156,7 @@ public class TrainingController {
 
             httpSession.setAttribute("exerciseResultDtoMap", exerciseResultDtoMap);
             httpSession.setAttribute("historyExerciseResultsMap", historyExerciseResults);
+            httpSession.setAttribute("planExerciseMap", planExerciseMap);
 
             return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
 

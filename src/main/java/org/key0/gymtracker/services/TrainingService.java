@@ -107,13 +107,14 @@ public class TrainingService {
 
     public Map<Integer, ExerciseResultDto> getExerciseResultDtoMap(Training training){
         WorkoutPlan workoutPlan = training.getPlan();
-        List<PlanExercise> planExerciseList = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), training.getDayNumber());
+        Map<Long, PlanExercise> planExerciseMap = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), training.getDayNumber())
+                .stream().collect(Collectors.toMap(planExercise->planExercise.getId(), planExercise -> planExercise));
 
         List<ExerciseResult> exerciseResultList = exerciseResultRepository.findByTraining(training);
         List<SetLog> allLogs = setLogRepository.findByExerciseResultIn(exerciseResultList);
 
-        return planExerciseList.stream().map(ex -> {
-            ExerciseResultDto dto = new ExerciseResultDto(training, planExerciseList.size(), ex);
+        return planExerciseMap.values().stream().map(ex -> {
+            ExerciseResultDto dto = new ExerciseResultDto(training.getId(), ex.getTargetSets(), ex.getId());
 
             //ExerciseResults były przogotowane w prepare training stąd możemy twierdzić, że wszystkie setLogi są aktuale i ewentualnie niewypełnione
             ExerciseResult er = exerciseResultList.stream()
@@ -132,7 +133,7 @@ public class TrainingService {
             }
 
             return dto;
-        }).collect(Collectors.toMap(exDto -> exDto.getExercise().getExerciseNumber(), exDto -> exDto));
+        }).collect(Collectors.toMap(exDto -> planExerciseMap.get(exDto.getExerciseId()).getExerciseNumber(), exDto -> exDto));
     }
 
     public Map<Integer, ExerciseResult> getExerciseResultMap(Training training){
@@ -145,7 +146,7 @@ public class TrainingService {
 
     @Transactional
     public void saveExerciseResultDto(ExerciseResultDto exerciseResultDto) {
-        ExerciseResult exerciseResult = exerciseResultRepository.findByTrainingAndExercise(exerciseResultDto.getTraining(), exerciseResultDto.getExercise())
+        ExerciseResult exerciseResult = exerciseResultRepository.findByTrainingIdAndExerciseId(exerciseResultDto.getTrainingId(), exerciseResultDto.getExerciseId())
                 .orElseThrow(() -> new IllegalArgumentException("Wynik ćwiczenia nie istnieje"));
 
         List<SetLog> setLogList = setLogRepository.findByExerciseResultOrderBySetNumberAsc(exerciseResult);
