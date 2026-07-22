@@ -164,4 +164,35 @@ public class TrainingService {
             entity.setRestTime(dto.getRestTime());
         }
     }
+
+    // Metoda ma za zadanie przygotować wyniki z ćwiczeń z poprzedniego tygodnia.
+    // Problem jest taki, że niektóre ćwiczenia nie mają historii, ponieważ mogą być robione 1 raz przy zmianie planu.
+    public Map<Integer, ExerciseResult> prepareHistoryExerciseResultMap(Integer currentWeek, Integer currentDay, User user){
+        WorkoutPlan plan = planService.getWorkoutPlan(user);
+        Training currentTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(currentWeek, currentDay, plan).orElseThrow(() -> new RuntimeException("Trening nie istnieje"));
+        Optional<Training> lastWeekTraining = trainingRepository.findByTrainingWeekAndDayNumberAndPlan(currentWeek - 1, currentDay, plan);
+
+        if(lastWeekTraining.isEmpty()) return null;
+
+        Map<Integer, ExerciseResult> exerciseResultMap = new HashMap<>();
+
+        List<ExerciseResult> currentExerciseResultList = exerciseResultRepository.findByTraining(currentTraining);
+        List<ExerciseResult> lastWeekExerciseResultList = exerciseResultRepository.findByTraining(lastWeekTraining.get());
+
+        for(ExerciseResult exerciseResult : currentExerciseResultList){
+            // Iterujemy po wszystkich aktualnych wynikach ćwiczeń i sprawdzamy, czy takie ćwiczenie ma wyniki sprzed tygodnia.
+            Optional<ExerciseResult> lastWeekResult = lastWeekExerciseResultList.stream().filter(exResult -> Objects.equals(exResult.getExercise().getId(), exerciseResult.getExercise().getId())).findFirst();
+            if(lastWeekResult.isPresent()){
+                exerciseResultMap.put(exerciseResult.getExercise().getExerciseNumber(), lastWeekResult.get());
+            } else {
+                exerciseResultMap.put(exerciseResult.getExercise().getExerciseNumber(), null);
+            }
+        }
+
+        // W ten sposób dostajemy mapę gdzie, jeżeli ćwiczenie było robione w poprzednim tygodniu, to mamy te dane, a w innym wypadku mamy null.
+        return exerciseResultMap;
+    }
+
+    // Metoda aktualnie nie działa. Szukanie po treningu nie ma sensu, ponieważ jeżeli użytkownik pozmienia ćwiczenia dniami, to trening o tym nie wie.
+    // Aktualizacja tej metody zostanie wrzucona jutro.
 }

@@ -280,20 +280,7 @@ public class PlanController {
 
             planService.shrinkPlanIfNeeded(currentSessionDto);
 
-            List<PlanExercise> userOldExercises = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
-            planExerciseRepository.deleteAll(userOldExercises);
-
-            plan.setDaysPerWeek(currentSessionDto.getDaysPerWeek());
-            workoutPlanRepository.save(plan);
-
-            List<PlanExercise> newExercises = currentSessionDto.getPlanExerciseList().stream()
-                    .map(peDto -> {
-                        PlanExercise pe = peDto.toPlanExerciseWithoutPlan();
-                        pe.setPlan(plan);
-                        return pe;
-                    }).toList();
-
-            planExerciseRepository.saveAll(newExercises);
+            planService.filterExercises(currentSessionDto, plan);
 
             httpSession.removeAttribute("workoutPlanDto");
 

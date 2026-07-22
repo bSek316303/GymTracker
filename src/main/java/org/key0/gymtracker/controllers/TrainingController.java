@@ -60,6 +60,44 @@ public class TrainingController {
 
         return "choose_training";
     }
+
+    @PostMapping("/{week-number}/{day-number}/{target-exercise-number}")
+    @Transactional
+    public String prepareTraining(@AuthenticationPrincipal UserDetails userDetails,
+                                  @PathVariable("week-number") Integer weekNumber,
+                                  @PathVariable("day-number") Integer dayNumber,
+                                  @PathVariable("target-exercise-number") Integer targetExerciseNumber,
+                                  HttpSession httpSession, Model model) {
+        try {
+            User user = userService.getUser(userDetails);
+            WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
+            Training training = trainingService.getOrCreateTraining(weekNumber, dayNumber, workoutPlan); // Możemy albo rozpocząć nowy trening albo wrócić do starego.
+            trainingService.prepareTraining(training);
+            Map<Integer, ExerciseResultDto> exerciseResultDtoMap = trainingService.getExerciseResultDtoMap(training);
+            Map<Long, PlanExercise> planExerciseMap = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber)
+                    .stream().collect(Collectors.toMap(planExercise->planExercise.getId(), planExercise -> planExercise));
+
+            Map<Integer, ExerciseResult> historyExerciseResults = null;
+            if(weekNumber > 1) {
+                Training lastWeekTraining = trainingService.getTraining(weekNumber - 1, dayNumber, workoutPlan);
+                historyExerciseResults = trainingService.getExerciseResultMap(lastWeekTraining);
+            }
+
+            httpSession.setAttribute("exerciseResultDtoMap", exerciseResultDtoMap);
+            httpSession.setAttribute("historyExerciseResultsMap", historyExerciseResults);
+            httpSession.setAttribute("planExerciseMap", planExerciseMap);
+
+            return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
+
+        } catch(Exception e) {
+            System.err.println("BŁĄD W PREPARE TRAINING: " + e.getMessage());
+            e.printStackTrace();
+
+            model.addAttribute("error", e.getMessage());
+        }
+        return "error";
+    }
+
     @PostMapping("/{week-number}/{day-number}/{old-exercise-number}/{new-exercise-number}")
     public String changeExercise(@AuthenticationPrincipal UserDetails currentUser,
                                  @ModelAttribute("currentExerciseDto") ExerciseResultDto currentExerciseDto,
@@ -130,42 +168,5 @@ public class TrainingController {
             return "error";
         }
         return "training";
-    }
-
-    @PostMapping("/{week-number}/{day-number}/{target-exercise-number}")
-    @Transactional
-    public String prepareTraining(@AuthenticationPrincipal UserDetails userDetails,
-                                     @PathVariable("week-number") Integer weekNumber,
-                                     @PathVariable("day-number") Integer dayNumber,
-                                     @PathVariable("target-exercise-number") Integer targetExerciseNumber,
-                                     HttpSession httpSession, Model model) {
-        try {
-            User user = userService.getUser(userDetails);
-            WorkoutPlan workoutPlan = planService.getWorkoutPlan(user);
-            Training training = trainingService.getOrCreateTraining(weekNumber, dayNumber, workoutPlan); // Możemy albo rozpocząć nowy trening albo wrócić do starego.
-            trainingService.prepareTraining(training);
-            Map<Integer, ExerciseResultDto> exerciseResultDtoMap = trainingService.getExerciseResultDtoMap(training);
-            Map<Long, PlanExercise> planExerciseMap = planExerciseRepository.findByPlanIdAndDayNumberOrderByExerciseNumberAsc(workoutPlan.getId(), dayNumber)
-                    .stream().collect(Collectors.toMap(planExercise->planExercise.getId(), planExercise -> planExercise));
-
-            Map<Integer, ExerciseResult> historyExerciseResults = null;
-            if(weekNumber > 1) {
-                Training lastWeekTraining = trainingService.getTraining(weekNumber - 1, dayNumber, workoutPlan);
-                historyExerciseResults = trainingService.getExerciseResultMap(lastWeekTraining);
-            }
-
-            httpSession.setAttribute("exerciseResultDtoMap", exerciseResultDtoMap);
-            httpSession.setAttribute("historyExerciseResultsMap", historyExerciseResults);
-            httpSession.setAttribute("planExerciseMap", planExerciseMap);
-
-            return "redirect:/training/" + weekNumber + "/" + dayNumber + "/" + targetExerciseNumber;
-
-        } catch(Exception e) {
-            System.err.println("BŁĄD W PREPARE TRAINING: " + e.getMessage());
-            e.printStackTrace();
-
-            model.addAttribute("error", e.getMessage());
-        }
-        return "error";
     }
 }
