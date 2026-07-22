@@ -2,12 +2,12 @@ package org.key0.gymtracker.services;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
+import org.key0.gymtracker.dto.ExerciseResultDto;
 import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.dto.WorkoutPlanDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 import org.key0.gymtracker.models.*;
 import org.key0.gymtracker.repositories.*;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -192,13 +192,12 @@ public class PlanService {
 
     public Map<String, PlanExercise> getPlanExercisesMap(User user){
         WorkoutPlan plan = getWorkoutPlan(user);
-        Map<String, PlanExercise> mapToReturn = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId())
+        return planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId())
                 .stream()
                 .collect(Collectors.toMap(
                         pe -> String.valueOf(pe.getDayNumber()) + "-" + String.valueOf(pe.getExerciseNumber()),
                         pe -> pe
                 ));
-        return mapToReturn;
     }
 
     private void updatePlanExerciseFromDto(PlanExercise pe, PlanExerciseDto peDto){
@@ -208,5 +207,80 @@ public class PlanService {
         pe.setGuidelines(peDto.getGuidelines());
         pe.setDayNumber(peDto.getDayNumber());
         pe.setTrackingParameter(TrackingParameter.fromString(peDto.getTrackingParameter()));
+    }
+
+    // Metoda nadpisuje plan treningowy użytkownika w taki sposób żeby wyniki dotychczasowych ćwiczeń zostały.
+    // Czyli np. jeżeli użytkownik robił ławkę płaską i zmienił plan to zostaną mu informacje o jego wynikach w tym ćwiczeniu
+    // choćby je przeniósł na inny dzień.
+
+    // Metoda zakłada, że użytkownik nie będzie miał 2 tych samych ćwiczeń jako 2 różne ćwiczenia tego samego dnia co nie ma sensu z perspektywy użytkownika siłowni
+    @Transactional
+    public void filterExercises(WorkoutPlanDto workoutPlanDto, WorkoutPlan plan){
+        List<PlanExercise> exercisesToFilter = planExerciseRepository.findByPlanIdOrderByExerciseNumberAsc(plan.getId());
+        List<PlanExercise> exercisesToSave = new ArrayList<>();
+
+        for(PlanExerciseDto exDto : workoutPlanDto.getPlanExerciseList()){
+            Optional<PlanExercise> exerciseMatch = exercisesToFilter.stream()
+                    .filter(ex -> exDto.getExerciseName().equalsIgnoreCase(ex.getExerciseName()) && ex.getDayNumber() == exDto.getDayNumber()).findAny();
+            if(exerciseMatch.isPresent()){
+                // W tym przypadku istnieje ćwiczenie z tą nazwą tego samego dnia więc użytkownik go nie ruszał bądź zamienił ćwiczenia miejscami
+                // Sprawdźmy najpierw czy ćwiczenia zostały zamienione miejscami.
+                if(exDto.getExerciseNumber() == exerciseMatch.get().getExerciseNumber()){
+                    // Tutaj nie zostały zamienione miejscami więc to ćwiczenie jest sprawdzone do nadpisania
+                    exerciseMatch.get().updateFromPlanExerciseDto(exDto);
+                    exercisesToSave.add(exerciseMatch.get());
+                    continue;
+                } else {
+                    // Tutaj musimy zamienić numerami ćwiczenia.
+                    Optional<PlanExercise> exerciseToChangeExerciseNumber = exercisesToFilter.stream()
+                            .filter(ex-> ex.getDayNumber() == exDto.getDayNumber() && exDto.getExerciseNumber() == ex.getExerciseNumber()).findFirst();
+                    exerciseToChangeExerciseNumber.ifPresent(ex -> ex.setExerciseNumber(-1));
+                    exerciseMatch.get().updateFromPlanExerciseDto(exDto);
+                    exercisesToSave.add(exerciseMatch.get());
+                    continue;
+                }
+                // W tym przypadku sprawdzimy czy w innym dniu nie ma takiego ćwiczenia.
+            } else {
+                // Używamy listy ponieważ użytkownik może mieć to samo ćwiczenie kilka razy w ciągu tygodnia więc znajdziemy je wszystkie i sprawdzimy
+                // czy lista dto ćwiczeń nie zawiera takiego ćwiczenia w danym dniu
+                // np -> mamy w ex dto ławkę płaską w 1 dzień. W ćwiczeniach dotychczasowych nie ma w 1 dniu takiego ćwiczenia więc szukamy w innych.
+                // Znajdujemy w 3 i 4 dniu takie ćwiczenie (stąd lista). Jeżeli dto ćwiczeń ma w 4 dniu też takie ćwiczenie to nie możemy podebrać informacji
+                // o wynikach z tego ćwiczenia. Natomiast jeżeli w 3 dniu nie będzie takiego ćwiczenia to znaczy, że użytkownik przeniósł to ćwiczenie na 1 dzień
+                // i w takim przypadku pobieramy informacje o wynikach i aktualizujemy.
+                List<PlanExercise> exerciseMatchesFromOtherDays = exercisesToFilter.stream()
+                        .filter(ex -> exDto.getExerciseName().equalsIgnoreCase(ex.getExerciseName())).toList();
+                boolean wasFound = false;
+                for(PlanExercise exerciseMatchFromOtherDays : exerciseMatchesFromOtherDays){
+                    boolean isDuplicate = workoutPlanDto.getPlanExerciseList().stream()
+                            .anyMatch(planExDto -> Objects.equals(planExDto.getExerciseName(), exerciseMatchFromOtherDays.getExerciseName())
+                            && exerciseMatchFromOtherDays.getDayNumber() == planExDto.getDayNumber());
+                    if(!isDuplicate){
+                        // Teraz wiemy, że w tamtym dniu nie ma takiego ćwiczenia więc zostało przeniesione.
+                        // Musimy jeszcze sprawdzić czy nie zostało przeniesione kilka razy. Żeby to sprawdzić po prostu zobaczymy
+                        // czy nie ma takiego ćwiczenia w exercisesToSave;
+                        boolean isSaved = exercisesToSave.stream().anyMatch(exercise -> exercise.getId() == exerciseMatchFromOtherDays.getId());
+                        if(!isSaved){
+                            // Teraz już jesteśmy pewni, że to nie jest ani duplikat ani wyniki z tego ćwiczenia nie zostały przypisane do innego
+                            exerciseMatchFromOtherDays.updateFromPlanExerciseDto(exDto);
+                            exercisesToSave.add(exerciseMatchFromOtherDays);
+                            wasFound = true;
+                            break;
+                        }
+                    }
+                }
+                if(wasFound) continue;
+            }
+            // Teraz już wiemy, że nie ma takiego ćwiczenia w dotychczasowej bazie ćwiczeń więc musimy dodać nowe ćwiczenie.
+            PlanExercise newExercise = new PlanExercise();
+            newExercise.updateFromPlanExerciseDto(exDto);
+            newExercise.setPlan(plan);
+            exercisesToSave.add(newExercise);
+            exercisesToFilter.add(newExercise);
+        }
+        // Pętla zapisała wszystkie exDto więc zostaje nam nadpisać bazę.
+        exercisesToFilter.removeIf(ex -> exercisesToSave.stream()
+                .anyMatch(saved -> saved.getId() != null && saved.getId().equals(ex.getId())));
+        planExerciseRepository.deleteAll(exercisesToFilter);
+        planExerciseRepository.saveAll(exercisesToSave);
     }
 }

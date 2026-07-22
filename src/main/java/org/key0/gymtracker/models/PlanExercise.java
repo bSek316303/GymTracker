@@ -3,6 +3,7 @@ package org.key0.gymtracker.models;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.key0.gymtracker.dto.PlanExerciseDto;
 import org.key0.gymtracker.enums.TrackingParameter;
 
 @Entity
@@ -36,4 +37,13 @@ public class PlanExercise {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plan_id", nullable = false)
     private WorkoutPlan plan;
+
+    public void updateFromPlanExerciseDto(PlanExerciseDto planExerciseDto){
+        this.exerciseName = planExerciseDto.getExerciseName();
+        this.dayNumber = planExerciseDto.getDayNumber();
+        this.exerciseNumber = planExerciseDto.getExerciseNumber();
+        this.guidelines = planExerciseDto.getGuidelines();
+        this.targetSets = planExerciseDto.getTargetSets();
+        this.trackingParameter = TrackingParameter.fromString(planExerciseDto.getTrackingParameter());
+    }
 }
